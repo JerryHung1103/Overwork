@@ -16,7 +16,7 @@ const fs = require('fs');
 
 app.get('/play', (req, res) => {
 
-    res.sendFile('C:\\Users\\QWWE\\Desktop\\websor\\public\\game.html');
+    res.sendFile(path.join(__dirname, '../public/game.html'));
 });
 
 
