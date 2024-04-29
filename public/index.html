@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multiplayer Game</title>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style>
+    #instructions,#description,#signin,#registration{
+        display: block;
+    }
+  </style>
+</head>
+<body>
+    <div id="registration">
+    <h1>Player Registration</h1>
+    <form id="registrationForm" >
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required>
+      <br>
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="pw" required>
+      <br>
+    </form>
+    <button id="register-button">Register</button>
+  </div>
+
+  <div id="signin">
+    <h1>Player Sign-In</h1>
+    <form>
+      <label for="username">Username:</label>
+      <input type="text" id="username_" >
+      <br>
+      <label for="password">Password:</label>
+      <input type="password" id="password_" >
+      <br>
+      <button type="submit" id="login">Sign In</button>
+    </form>
+  </div>
+
+  <div id="description">
+    <h1>Game Description</h1>
+    <p>Enter a brief description of your game here.</p>
+  </div>
+
+  <div id="instructions">
+    <h1>Game Instructions</h1>
+    <ul>
+      <li>Step 1: Add instructions here</li>
+      <li>Step 2: Add instructions here</li>
+      <li>Step 3: Add instructions here</li>
+      <!-- Add more steps as needed -->
+    </ul>
+  </div>
+
+  <div id="message"></div>
+
+  <script>
+    function fetchGamePage(){
+      fetch('/play')
+        .then(response => {
+          if (response.ok) {
+            window.location.href = '/play';
+          } else {
+            throw new Error('Failed to load play.html');
+          }
+        })
+    }
+
+ 
+    $('#register-button').on('click',()=>{
+      // console.log('clicked')
+      // $('body').append('<h1>success</h1>')
+      let name = $('#username').val();
+      let password = $('#password').val();
+      let data = {username: name , pw:password};
+      fetch("/register", {
+                method: "POST",
+                headers: { "Content-type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then((response) => response.json())
+            .then((data) => {
+            
+              if(data['success']){
+                $('#message').html('<p>success</p>')
+              }
+              else{
+                $('#message').html('<p>player exists</p>')
+              }
+            })   
+            .catch(e=>console.log(e));
+      })
+
+
+    
+  
+    document.getElementById('login').addEventListener('click',fetchGamePage)
+  </script>
+</body>
+</html>
