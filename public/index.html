@@ -29,13 +29,13 @@
     <h1>Player Sign-In</h1>
     <form>
       <label for="username">Username:</label>
-      <input type="text" id="username_" >
+      <input type="text" id="signin_username" >
       <br>
       <label for="password">Password:</label>
-      <input type="password" id="password_" >
+      <input type="password" id="signin_password" >
       <br>
-      <button type="submit" id="login">Sign In</button>
     </form>
+    <button type="submit" id="signin-button">Sign In</button>
   </div>
 
   <div id="description">
@@ -52,9 +52,7 @@
       <!-- Add more steps as needed -->
     </ul>
   </div>
-
   <div id="message"></div>
-
   <script>
     function fetchGamePage(){
       fetch('/play')
@@ -66,11 +64,31 @@
           }
         })
     }
+    $('#signin-button').on('click',()=>{
+      let name = $('#signin_username').val();
+      let password = $('#signin_password').val();
+      let data = {username: name , pw:password};
+      fetch("/signin", {
+                method: "POST",
+                headers: { "Content-type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then((response) => response.json())
+            .then((data) => {
+            
+              if(data['success']){
+                $('#message').html('<p>success</p>')
+                fetchGamePage();
+              }
+              else{
+                $('#message').html(`<p>${data.reason}</p>`)
+              }
+            })   
+            .catch(e=>console.log(e));
+      })
 
- 
-    $('#register-button').on('click',()=>{
-      // console.log('clicked')
-      // $('body').append('<h1>success</h1>')
+
+      $('#register-button').on('click',()=>{
       let name = $('#username').val();
       let password = $('#password').val();
       let data = {username: name , pw:password};
@@ -84,6 +102,7 @@
             
               if(data['success']){
                 $('#message').html('<p>success</p>')
+                fetchGamePage();
               }
               else{
                 $('#message').html('<p>player exists</p>')
@@ -92,10 +111,6 @@
             .catch(e=>console.log(e));
       })
 
-
-    
-  
-    document.getElementById('login').addEventListener('click',fetchGamePage)
   </script>
 </body>
 </html>
