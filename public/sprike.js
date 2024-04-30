@@ -78,6 +78,13 @@ const Character=function(ctx,image,width,height,x,y,rate,timing,stage,sequence){
             constructTime=now;
         }   
     }
+
+    function getX(){
+        return x;
+    }
+    function getY(){
+        return y;
+    }
     return{
         setStage,
         setX,
@@ -88,7 +95,9 @@ const Character=function(ctx,image,width,height,x,y,rate,timing,stage,sequence){
         setTime,
         setSequence,
         update,
-        draw
+        draw,
+        getX,
+        getY
      
     };
 }
