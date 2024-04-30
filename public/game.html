@@ -1,21 +1,35 @@
 <!DOCTYPE html>
 <head>
-    
     <style>
         #canvas{
             border: 5px black dashed;
+        }
+        #scoreboard {
+            position: absolute; /* Position the scoreboard relative to the canvas */
+            top: 20px; /* Adjust the top position as needed */
+            left: 20px; /* Adjust the left position as needed */
+            background-color: #fff;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 18px;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 <body>
- 
-
+    <div id="scoreboard">
+        Score
+        <div >
+            Player 1:<span id="score">0</span>
+        </div>
+        <div >
+            Player 2:<span id="score">0</span>
+        </div>
+    </div>
     <canvas id="canvas"></canvas>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="sprike.js"></script>
     <script src="player.js"></script>
     <script src="game.js"></script>
-    
 </body>
