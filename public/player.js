@@ -85,6 +85,10 @@ const Player=function(ctx,src,width,height,x,y,rate,speedTiming,stage){
         moveFront:moveFront,
         stop:stop,
         update:player.update,
-        draw:player.draw
+        draw:player.draw,
+        getX:player.getX,
+        getY:player.getY,
+        setX:player.setX,
+        setY:player.setY,
     };
 }
