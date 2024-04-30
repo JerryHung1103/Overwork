@@ -14,8 +14,45 @@ const fs = require('fs');
 
 const path = require('path');
 
+const players = {};
+
 app.get('/play', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/game.html'));
+});
+
+
+
+app.post("/signin", (req, res) => {
+ 
+    const {username , pw} = req.body;
+    const playerList = JSON.parse( fs.readFileSync('player.json'));
+    if (!playerList[`${username}`]) {
+        res.json(
+            {
+                success: false,
+                reason: 'Player does not exist',
+            }
+        );
+    }
+    else{
+        if(playerList[username].pw != pw){
+            res.json(
+                {
+                    success: false,
+                    reason: 'Wrong password',
+                }
+            );
+        }
+        else{
+            res.json(
+                {
+                    success: true,
+                    reason: '',
+                }
+            );
+        }
+        
+    }
 });
 
 
@@ -30,22 +67,25 @@ app.post("/register", (req, res) => {
         fs.writeFileSync('player.json',JSON.stringify(playerList,null, " "));
         res.json({success:true});
     }
-  
 });
 
 io.on('connection',(socket)=>{
-   
+
+    socket.emit('getID',socket.id);
+    
+    let initX = 400, initY=400;
+    players[socket.id ] = {x:initX , y :initY };
 
     console.log(socket.id + " is connected my server");
-    io.emit('addPlayer',socket.id);
-    //all browser update the 
+    io.emit('updatePlayers',players);
 
+    socket.on('disconnect',(reason)=>{
+        console.log(reason);
+        delete players[socket.id];
+        io.emit('updatePlayers',players);
+    })
+  
     
-    socket.on('constructPlayer', (obj) => {
-        PlayerArray.push({id: obj.id, x:obj.x , y:obj.y});
-        io.emit('updatePlayer',PlayerArray);
-      });
-
     socket.on('moveRight',(obj)=>{
         io.emit('moveByID',socket.id);
     })
@@ -71,7 +111,5 @@ io.on('connection',(socket)=>{
         io.emit('stopByID',socket.id);
     }) 
 })
-
-
 
 httpServer.listen(8000);
