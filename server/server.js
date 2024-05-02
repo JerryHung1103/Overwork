@@ -20,7 +20,14 @@ app.get('/play', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/game.html'));
 });
 
-
+app.post('/gameover', (req, res) => {
+    const {gameState} = req.body;
+    if (gameState == 'win') {
+        res.sendFile(path.join(__dirname, '../public/win.html'));
+    } else {
+        res.sendFile(path.join(__dirname, '../public/lose.html'));
+    }
+});
 
 app.post("/signin", (req, res) => {
  

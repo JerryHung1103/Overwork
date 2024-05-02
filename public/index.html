@@ -80,7 +80,7 @@
       logoImage.onload = function() {
         logoCtx.drawImage(logoImage, 100, 0, 140,180);
       };
-  
+
     </script>
   </p>
 
@@ -138,6 +138,28 @@
           }
         })
     }
+
+    // Gameover page is here for testing right now
+    function fetchGameOverPage(gameState){
+      let data = {gameState: gameState};
+
+      fetch('/gameover',{
+                method: "POST",
+                headers: { "Content-type": "application/json" },
+                body: JSON.stringify(data)
+            })
+      .then(response => {
+        if (response.ok) {
+          return response.text();
+        } else {
+          throw new Error('Failed to load gameover page');
+        }
+      })
+      .then(html => {
+        document.body.innerHTML = html;
+      })
+    }
+
     $('#signin-button').on('click',()=>{
       let name = $('#signin_username').val();
       let password = $('#signin_password').val();
