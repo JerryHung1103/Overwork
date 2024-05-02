@@ -18,7 +18,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 50vh;
   }
 
   .Sign-Up-form-container ,.form-container {
@@ -69,6 +69,22 @@
   </style>
 </head>
 <body>
+  <p align="center">
+    <canvas id="logoCanvas" width="300" height="200" class="canvas"></canvas>
+    <script>
+      const logoCanvas = document.getElementById("logoCanvas");
+      const logoCtx = logoCanvas.getContext("2d");
+      const logoImage = new Image();
+      logoImage.src = 'image/Logo.png';
+  
+      logoImage.onload = function() {
+        logoCtx.drawImage(logoImage, 100, 0, 140,180);
+      };
+  
+    </script>
+  </p>
+
+
   <div class="container">
     <div class="Sign-Up-form-container">
       <h1>Sign Up</h1>
@@ -90,25 +106,25 @@
           <div id="Login-error-message" style="display: none; color: red;"></div>
         </form>
         <button id="signin-button" type="submit">Login</button>
-        <input type="checkbox"> Remenber me
+        <input type="checkbox"> Remember me
       </div>
     </div>
-    
-<!-- 
-  <div id="description">
-    <h1>Game Description</h1>
-    <p>Enter a brief description of your game here.</p>
-  </div>
+  
+  <p align="center">
+    <canvas id="instructionCanvas" width="600" height="400" class="canvas"></canvas>
+      <script>
+        const instructionCanvas = document.getElementById("instructionCanvas");
+        const instructionCtx = instructionCanvas.getContext("2d");
+        const InstructionsWhiteboardImage = new Image();
 
-  <div id="instructions">
-    <h1>Game Instructions</h1>
-    <ul>
-      <li>Step 1: Add instructions here</li>
-      <li>Step 2: Add instructions here</li>
-      <li>Step 3: Add instructions here</li>
-     
-    </ul>
-  </div> -->
+        InstructionsWhiteboardImage.src = 'image/InstructionsWhiteboard.png';
+
+        InstructionsWhiteboardImage.onload = function() {
+          instructionCtx.drawImage(InstructionsWhiteboardImage, 0, 0, 600, 400);
+        };
+
+      </script>
+  </p>
   
   <div id="message"></div>
   <script>
