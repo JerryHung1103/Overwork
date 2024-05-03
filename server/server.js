@@ -28,6 +28,11 @@ app.post('/gameover', (req, res) => {
         res.sendFile(path.join(__dirname, '../public/lose.html'));
     }
 });
+const item1_location={
+    x:210,
+    y:170,
+    show:true
+}
 
 app.post("/signin", (req, res) => {
  
@@ -76,6 +81,19 @@ app.post("/register", (req, res) => {
     }
 });
 
+function switchItem(){
+    // console.log('switch to ', !item1_location.show)
+    if(item1_location.show){
+        io.emit('change_state_to',false);
+        item1_location.show=false;
+    }
+    else{
+        io.emit('change_state_to',true);
+        item1_location.show=true;
+    }
+}
+let sameRoom=true
+
 io.on('connection',(socket)=>{
 
     socket.emit('getID',socket.id);
@@ -83,6 +101,7 @@ io.on('connection',(socket)=>{
     let initX = 400, initY=400;
     players[socket.id ] = {x:initX , y :initY };
 
+    console.log(players)
     console.log(socket.id + " is connected my server");
     io.emit('updatePlayers',players);
 
@@ -91,10 +110,23 @@ io.on('connection',(socket)=>{
         delete players[socket.id];
         io.emit('updatePlayers',players);
     })
+    
+    io.emit('drawItem',item1_location);
+    if(sameRoom)
+        {
+            setInterval(switchItem,5000);//Make it random
+            sameRoom=false
+        }
+      socket.on('print',()=>{
+        console.log('calling server print',players)
+    })
   
     
     socket.on('moveRight',(obj)=>{
         io.emit('moveByID',socket.id);
+    })
+     socket.on('updatePos',pos=>{
+        players[socket.id]={x:pos.x , y:pos.y}
     })
     socket.on('move',(obj)=>{
         switch(obj){
@@ -117,6 +149,14 @@ io.on('connection',(socket)=>{
     socket.on('stop',(obj)=>{
         io.emit('stopByID',socket.id);
     }) 
+    socket.on('start_progress',index=>{
+        io.emit('receive_progress',index);
+    })
+    // socket.emit('update_barrier',id)
+    socket.on('update_barrier',state=>{
+        console.log(state)
+        io.emit('updateBarriers',state);
+    })
 })
 
 httpServer.listen(8000);
