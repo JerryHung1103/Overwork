@@ -1,5 +1,5 @@
 const Player=function(ctx,src,width,height,x,y,rate,speedTiming,stage){
-    let speed=10;
+    let speed=1;
     const sequence={
         stayFront:{row:1, col:3, x:0,y:0,count:3,loop:false},
         stayLeft:{row:1, col:3, x:0,y:height,count:3,loop:false},
@@ -78,6 +78,21 @@ const Player=function(ctx,src,width,height,x,y,rate,speedTiming,stage){
       
      }
 
+     function getStage(){
+        return stage;
+     }
+
+
+     //this can be hard coded
+     function getCenterX(){
+        return x+32;
+    }
+    
+    
+    function getCenterY(){
+        return y+42;
+    }
+
     return{
         moveRight:moveRight,
         moveLeft:moveLeft,
@@ -90,5 +105,8 @@ const Player=function(ctx,src,width,height,x,y,rate,speedTiming,stage){
         getY:player.getY,
         setX:player.setX,
         setY:player.setY,
+        getStage,
+        getCenterX,
+        getCenterY
     };
 }
