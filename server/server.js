@@ -160,6 +160,7 @@ io.on('connection',(socket)=>{
     })
 })
 app.post("/create-room", (req, res) => {
+    console.log(req.body);
     const { playerId } = req.body;
 
     // Generate a unique room ID using the player's name, which is unique
