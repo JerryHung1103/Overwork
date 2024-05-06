@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Multiplayer Game</title>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
- 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.1/socket.io.js"></script>
+
   <style>
   body {
     font-family: Arial, sans-serif;
@@ -168,8 +169,8 @@
       <button id="create-room-pairing-button">Create New Room</button>
     </div>
     <form id="room-join-form">
-      <input type="text" id="room-id-input" placeholder="Room ID" required>
-      <button type="submit">Join Existing Room</button>
+      <select id="room-id-select" required></select>
+      <button id= "room-id-select-submission-button" type="submit">Join Existing Room</button>
     </form>
   </div>
   
@@ -193,6 +194,31 @@
       $('#HomePage').hide();
       var pairupPage = document.getElementById("PairUp");
       pairupPage.style.display = 'block';
+
+      fetch('/get-available-rooms')
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error('Failed to get available rooms');
+          }
+        })
+        .then(data => {
+          console.log(data);
+
+          // Clear existing options
+          const roomSelect = document.getElementById("room-id-select");
+          roomSelect.innerHTML = '';
+
+          // Create and append new options
+          data.availableRooms.forEach(room => {
+            const option = document.createElement('option');
+            option.value = room;
+            option.text = room;
+            roomSelect.appendChild(option);
+          });
+
+      })
     }
 
     function fetchGamePage(){
@@ -228,31 +254,31 @@
     }
 
     $('#signin-button').on('click',()=>{
-      fetchGameOverPage("lose");
-      // let name = $('#signin_username').val();
-      // let password = $('#signin_password').val();
-      // let data = {username: name , pw:password};
-      // fetch("/signin", {
-      //           method: "POST",
-      //           headers: { "Content-type": "application/json" },
-      //           body: JSON.stringify(data)
-      //       })
-      //       .then((response) => response.json())
-      //       .then((data) => {
+      let name = $('#signin_username').val();
+      let password = $('#signin_password').val();
+      let data = {username: name , pw:password};
+      fetch("/signin", {
+                method: "POST",
+                headers: { "Content-type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then((response) => response.json())
+            .then((data) => {
             
-      //         if(data['success']){
-      //           $('#message').html('<p> success </p>');
-      //           playerName = name;
-      //           // Hide the login form and show the pair up page
-      //           showPairupPage();
-      //         }
-      //         else{
-      //           // $('#message').html(`<p>${data.reason}</p>`)
-      //           $('#Login-error-message').show();
-      //           $('#Login-error-message').text(data.reason);
-      //         }
-      //       })   
-      //       .catch(e=>console.log(e));
+              if(data['success']){
+                $('#message').html('<p> success </p>');
+                playerName = name;
+
+                // Hide the login form and show the pair up page
+                showPairupPage();
+              }
+              else{
+                // $('#message').html(`<p>${data.reason}</p>`)
+                $('#Login-error-message').show();
+                $('#Login-error-message').text(data.reason);
+              }
+            })   
+            .catch(e=>console.log(e));
       })
 
 
@@ -290,7 +316,6 @@
         .then(response => {
           if (response.ok) {
             return response.json();
-            console.log("Created a room!");
           } else {
             throw new Error('Failed to create room');
           }
@@ -303,6 +328,29 @@
         })
         .catch(e => console.log(e));
       })
+
+      $("room-id-select-submission-button").on('click',()=>{
+        let selectedRoomId = $('#room-id-select').val();
+        fetch('/join-room' , {method: 'POST',
+                              headers: {'Content-Type': 'application/json',}, 
+                              body: JSON.stringify({ playerId: playerName, roomId: selectedRoomId }), 
+        })
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error('Failed to join room');
+          }
+        })
+        .then(data => {
+          console.log(data);  
+          $('#status').text('Room joined. Room ID: ' + data.roomId + ' .Waiting for another player to join...');
+          $('#create-room-pairing-button-container').hide();
+          $('#room-join-form').hide();
+        })
+        .catch(e => console.log(e));
+      })
+
   </script>
 </body>
 </html>
