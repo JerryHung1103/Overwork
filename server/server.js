@@ -100,7 +100,7 @@ io.on('connection',(socket)=>{
     socket.emit('getID',socket.id);
     
     let initX = 400, initY=400;
-    players[socket.id] = {x:initX , y :initY };
+    players[socket.id] = {x:initX , y :initY , inGame:false};
 
     console.log(players)
     console.log(socket.id + " is connected my server");
@@ -170,7 +170,9 @@ app.post("/create-room", (req, res) => {
     rooms[roomId] = {
       players: [playerId],
     };
-  
+    
+    // Return the roomId to client
     res.json({ roomId });
 })
+
 httpServer.listen(8000);
