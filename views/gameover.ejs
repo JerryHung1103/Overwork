@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= gameState %></title>
+  <style>
+    body {
+      background-image: url('/image/<%= gameState === "win" ? "WinPage.png" : "LosePage.png" %>');
+      background-repeat: no-repeat;
+      background-size: 50%;
+      background-position: center top;
+
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      padding: 0;
+
+    }
+
+    .button-container {
+        margin-top: 500px;
+    }
+
+    .Quit,
+    .Play {
+        padding: 10px 20px;
+        box-sizing: content-box;
+    }
+
+  </style>
+  </style>
+</head>
+<body>
+  <div class="button-container">
+    <button class="Quit">Quit game</button>
+    <button class="Play">Play again</button>
+  </div>
+</body>
+</html>
