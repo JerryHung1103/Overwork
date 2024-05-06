@@ -17,7 +17,10 @@ const fs = require('fs');
 const path = require('path');
 
 const players = {};
+
+// For index.html
 const rooms = {};
+const playersInLobby = {};
 
 function getAvailableRooms() {
     const availableRooms = [];
@@ -35,13 +38,11 @@ function getAvailableRooms() {
 
 function getPlayersIdle() {
     const playersIdle = [];
-    const playerIds = Object.keys(players);
-    console.log("In get idle players" + players);
-    console.log("player Ids" + playerIds );
+    const playerIds = Object.keys(playersInLobby);
+  
     for (let i = 0; i < playerIds.length; i++) {
       const playerId = playerIds[i];
-      console.log("Player: " + players[playerId]);
-      if (players[playerId].isIdle) {
+      if (playersInLobby[playerId].isIdle) {
         playersIdle.push(playerId);
       }
     }
@@ -53,18 +54,12 @@ function broadcastAvailableRooms(){
     const availableRooms = getAvailableRooms();
     const idlePlayers = getPlayersIdle();
 
-    // console.log all available rooms
-    // console.log('Available rooms:', availableRooms);
-    // console.log('Idle players:', idlePlayers);
-
     // Emit available rooms to idle players
     idlePlayers.forEach(playerId => {
-      if (playerId !== socket.id) {
         io.to(playerId).emit('availableRooms', {
           rooms: availableRooms,
           players: idlePlayers
         });
-      }
     });
 }
 
@@ -76,6 +71,7 @@ app.post('/gameover', (req, res) => {
     const {gameState} = req.body;
     res.render('gameover', { gameState });
 });
+
 const item1_location={
     x:210,
     y:170,
@@ -110,7 +106,7 @@ app.post("/signin", (req, res) => {
                     reason: '',
                 }
             );
-
+            playersInLobby[username] = {isIdle: true};
         }
         
     }
@@ -144,11 +140,10 @@ function switchItem(){
 let sameRoom=true
 
 io.on('connection',(socket)=>{
-    console.log("Connection");
     socket.emit('getID',socket.id);
     
     let initX = 400, initY=400;
-    players[socket.id] = {x:initX , y :initY , isIdle:true};
+    players[socket.id] = {x:initX , y :initY};
 
     // console.log(socket.id + " is connected my server");
     io.emit('updatePlayers',players);
@@ -206,6 +201,12 @@ io.on('connection',(socket)=>{
         io.emit('updateBarriers',state);
     })
 })
+
+app.get('/get-available-rooms',(req,res)=>{
+    let availableRooms = getAvailableRooms();
+    res.json({availableRooms});
+});
+
 app.post("/create-room", (req, res) => {
     console.log(req.body);
     const { playerId } = req.body;
@@ -218,11 +219,30 @@ app.post("/create-room", (req, res) => {
       players: [playerId],
     };
     
+    playersInLobby[playerId] = { isIdle: false };
     // Broadcast latest list of available rooms to the players
     broadcastAvailableRooms();
 
     // Return the roomId to client
     res.json({ roomId });
 })
+
+// This needs socket....
+app.post("/join-room", (req, res) => {
+    const { playerId, roomId } = req.body;
+
+    // Join the room
+    rooms[roomId].players.push(playerId);
+    // Alert the other player in the room that the room is now full, send them a message to start the game
+    const otherPlayerId = rooms[roomId].players[0];
+    io.emit('startGame', otherPlayerId);
+
+    playersInLobby[playerId] = { isIdle: false };
+    // Broadcast latest list of available rooms to the players
+    broadcastAvailableRooms();
+
+    // Send the player to the game room
+    res.sendFile(path.join(__dirname, '../public/game.html'));
+});
 
 httpServer.listen(8000);
