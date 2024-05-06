@@ -71,7 +71,13 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
+      display: flex;
+      padding: 10px;
+      margin-bottom: 10px;
+      max-width: 300px; 
+      margin-left: auto;
+      margin-right: auto;
+
   }
 
   #pairing-status {
@@ -154,10 +160,9 @@
     </p>
   </div>
 
-  <div id = "PairUp">
+  <div id = "PairUp" >
     <h2>Pairing Room</h2>
     <p id="status">Waiting for pairing...</p>
-    </div>
     <div id="create-room-pairing-button-container">
       <button id="create-room-pairing-button">Create New Room</button>
     </div>
@@ -171,6 +176,24 @@
   <div id="message"></div>
   <script>
     let playerName;
+
+    window.addEventListener('load', function() {
+      showHomePage();
+    });
+
+    function showHomePage(){
+      $('#HomePage').show();
+      var pairupPage = document.getElementById("PairUp");
+      pairupPage.style.display = 'none';
+      
+    }
+
+    function showPairupPage(){
+      $('#HomePage').hide();
+      var pairupPage = document.getElementById("PairUp");
+      pairupPage.style.display = 'block';
+    }
+
     function fetchGamePage(){
       fetch('/play')
         .then(response => {
@@ -219,8 +242,7 @@
                 $('#message').html('<p> success </p>');
                 playerName = name;
                 // Hide the login form and show the pair up page
-                $('#HomePage').hide();
-                $('#PairUp').show();
+                showPairupPage();
               }
               else{
                 // $('#message').html(`<p>${data.reason}</p>`)
@@ -258,9 +280,10 @@
       })
 
       $('#create-room-pairing-button').on('click',()=>{
+        console.log(playerName);
         fetch('/create-room' , {method: 'POST',
                                 headers: {'Content-Type': 'application/json',}, 
-                                body: JSON.stringify({ playerId: $('#message').val() }), 
+                                body: JSON.stringify({ playerId: playerName }), 
         })
         .then(response => {
           if (response.ok) {
@@ -271,7 +294,8 @@
           }
         })
         .then(data => {
-          $('#status').text('Room created. Waiting for another player to join...');
+          console.log(data);  
+          $('#status').text('Room created. Room ID: ' + data.roomId + ' .Waiting for another player to join...');
           $('#create-room-pairing-button-container').hide();
           $('#room-join-form').hide();
         })
