@@ -28,13 +28,6 @@ backgroundImg.onload=()=>{
     }
     playerImg.src= '/image/player_sprite.png'
 }
-playerImg.onload=()=>{
-    itemImg.onload=()=>{
-        requestAnimationFrame(drawAnimation);
-    }
-    itemImg.src= '/image/player_sprite.png'
-}
-playerImg.src= '/image/player_sprite.png'
 
 const players = {}
 let browserID;
@@ -78,7 +71,12 @@ socket.on('updateBarriers',state=>{
 })
 
 function drawAnimation(now){
+    // Clear the canvas
     ctx.clearRect(0,0,cvw,cvh)
+    
+    // Redraw the background
+    ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+    
     if(barriers){
         barriers.forEach(barrier=>barrier.startProgress(ctx))
         ctx.fillStyle = "#4caf50";
