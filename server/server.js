@@ -15,6 +15,7 @@ const fs = require('fs');
 const path = require('path');
 
 const players = {};
+const rooms = {};
 
 app.get('/play', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/game.html'));
@@ -99,7 +100,7 @@ io.on('connection',(socket)=>{
     socket.emit('getID',socket.id);
     
     let initX = 400, initY=400;
-    players[socket.id ] = {x:initX , y :initY };
+    players[socket.id] = {x:initX , y :initY };
 
     console.log(players)
     console.log(socket.id + " is connected my server");
@@ -158,5 +159,17 @@ io.on('connection',(socket)=>{
         io.emit('updateBarriers',state);
     })
 })
+app.post("/create-room", (req, res) => {
+    const { playerId } = req.body;
 
+    // Generate a unique room ID using the player's name, which is unique
+    const roomId = playerId;
+  
+    // Create the room
+    rooms[roomId] = {
+      players: [playerId],
+    };
+  
+    res.json({ roomId });
+})
 httpServer.listen(8000);

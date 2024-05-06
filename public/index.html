@@ -66,68 +66,111 @@
   button:hover {
     background-color: #45a049;
   }
+
+  #PairUp {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+  }
+
+  #pairing-status {
+      margin-bottom: 20px;
+  }
+  
+  #create-room-pairing-button-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #room-join-form {
+      display: flex;
+      padding: 10px;
+      margin-bottom: 10px;
+      max-width: 300px; 
+      margin-left: auto;
+      margin-right: auto;
+  }
+
   </style>
 </head>
 <body>
-  <p align="center">
-    <canvas id="logoCanvas" width="300" height="200" class="canvas"></canvas>
-    <script>
-      const logoCanvas = document.getElementById("logoCanvas");
-      const logoCtx = logoCanvas.getContext("2d");
-      const logoImage = new Image();
-      logoImage.src = 'image/Logo.png';
-  
-      logoImage.onload = function() {
-        logoCtx.drawImage(logoImage, 100, 0, 140,180);
-      };
-
-    </script>
-  </p>
-
-
-  <div class="container">
-    <div class="Sign-Up-form-container">
-      <h1>Sign Up</h1>
-      <form>
-        <input id="username"  type="text" placeholder="Username" required>
-
-        <input id="password" type="password" placeholder="Password" required>
-        <div id="SignUp-error-message" style="display: none; color: red;"></div>
-      </form>
-      <button id="register-button" type="submit">Sign Up</button>
-    </div>
-
-  
-      <div class="form-container">
-        <h1>Login</h1>
-        <form>
-          <input id="signin_username" type="text" placeholder="Username" required>
-          <input id="signin_password" type="password" placeholder="Password" required>
-          <div id="Login-error-message" style="display: none; color: red;"></div>
-        </form>
-        <button id="signin-button" type="submit">Login</button>
-        <input type="checkbox"> Remember me
-      </div>
-    </div>
-  
-  <p align="center">
-    <canvas id="instructionCanvas" width="600" height="400" class="canvas"></canvas>
+  <div id = "HomePage">
+    <p align="center">
+      <canvas id="logoCanvas" width="300" height="200" class="canvas"></canvas>
       <script>
-        const instructionCanvas = document.getElementById("instructionCanvas");
-        const instructionCtx = instructionCanvas.getContext("2d");
-        const InstructionsWhiteboardImage = new Image();
-
-        InstructionsWhiteboardImage.src = 'image/InstructionsWhiteboard.png';
-
-        InstructionsWhiteboardImage.onload = function() {
-          instructionCtx.drawImage(InstructionsWhiteboardImage, 0, 0, 600, 400);
+        const logoCanvas = document.getElementById("logoCanvas");
+        const logoCtx = logoCanvas.getContext("2d");
+        const logoImage = new Image();
+        logoImage.src = 'image/Logo.png';
+    
+        logoImage.onload = function() {
+          logoCtx.drawImage(logoImage, 100, 0, 140,180);
         };
 
       </script>
-  </p>
+    </p>
+
+
+    <div class="container">
+      <div class="Sign-Up-form-container">
+        <h1>Sign Up</h1>
+        <form>
+          <input id="username"  type="text" placeholder="Username" required>
+
+          <input id="password" type="password" placeholder="Password" required>
+          <div id="SignUp-error-message" style="display: none; color: red;"></div>
+        </form>
+        <button id="register-button" type="submit">Sign Up</button>
+      </div>
+
+    
+        <div class="form-container">
+          <h1>Login</h1>
+          <form>
+            <input id="signin_username" type="text" placeholder="Username" required>
+            <input id="signin_password" type="password" placeholder="Password" required>
+            <div id="Login-error-message" style="display: none; color: red;"></div>
+          </form>
+          <button id="signin-button" type="submit">Login</button>
+          <input type="checkbox"> Remember me
+        </div>
+      </div>
+    
+    <p align="center">
+      <canvas id="instructionCanvas" width="600" height="400" class="canvas"></canvas>
+        <script>
+          const instructionCanvas = document.getElementById("instructionCanvas");
+          const instructionCtx = instructionCanvas.getContext("2d");
+          const InstructionsWhiteboardImage = new Image();
+
+          InstructionsWhiteboardImage.src = 'image/InstructionsWhiteboard.png';
+
+          InstructionsWhiteboardImage.onload = function() {
+            instructionCtx.drawImage(InstructionsWhiteboardImage, 0, 0, 600, 400);
+          };
+
+        </script>
+    </p>
+  </div>
+
+  <div id = "PairUp">
+    <h2>Pairing Room</h2>
+    <p id="status">Waiting for pairing...</p>
+    </div>
+    <div id="create-room-pairing-button-container">
+      <button id="create-room-pairing-button">Create New Room</button>
+    </div>
+    <form id="room-join-form">
+      <input type="text" id="room-id-input" placeholder="Room ID" required>
+      <button type="submit">Join Existing Room</button>
+    </form>
+  </div>
   
+  </div>  
   <div id="message"></div>
   <script>
+    let playerName;
     function fetchGamePage(){
       fetch('/play')
         .then(response => {
@@ -173,8 +216,11 @@
             .then((data) => {
             
               if(data['success']){
-                $('#message').html('<p>success</p>')
-                fetchGamePage();
+                $('#message').html('<p> success </p>');
+                playerName = name;
+                // Hide the login form and show the pair up page
+                $('#HomePage').hide();
+                $('#PairUp').show();
               }
               else{
                 // $('#message').html(`<p>${data.reason}</p>`)
@@ -199,7 +245,8 @@
             .then((data) => {
             
               if(data['success']){
-                $('#message').html('<p>success</p>')
+                $('#message').html('<p>success</p>');
+                playerName = name;
                 fetchGamePage();
               }
               else{
@@ -208,6 +255,27 @@
               }
             })   
             .catch(e=>console.log(e));
+      })
+
+      $('#create-room-pairing-button').on('click',()=>{
+        fetch('/create-room' , {method: 'POST',
+                                headers: {'Content-Type': 'application/json',}, 
+                                body: JSON.stringify({ playerId: $('#message').val() }), 
+        })
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+            console.log("Created a room!");
+          } else {
+            throw new Error('Failed to create room');
+          }
+        })
+        .then(data => {
+          $('#status').text('Room created. Waiting for another player to join...');
+          $('#create-room-pairing-button-container').hide();
+          $('#room-join-form').hide();
+        })
+        .catch(e => console.log(e));
       })
   </script>
 </body>

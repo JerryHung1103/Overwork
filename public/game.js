@@ -14,6 +14,20 @@ const ItemHeight = 200/8;
 
 let playerImg=new Image();
 let itemImg = new Image();
+let backgroundImg = new Image();
+
+backgroundImg.src = '/image/background.png';
+backgroundImg.onload=()=>{
+    // Draw background img covering the whole canvas
+    ctx.drawImage(backgroundImg,0,0,canvas.width,canvas.height);
+    playerImg.onload=()=>{
+        itemImg.onload=()=>{
+            requestAnimationFrame(drawAnimation);
+        }
+        itemImg.src= '/image/player_sprite.png'
+    }
+    playerImg.src= '/image/player_sprite.png'
+}
 playerImg.onload=()=>{
     itemImg.onload=()=>{
         requestAnimationFrame(drawAnimation);
