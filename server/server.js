@@ -2,6 +2,8 @@ const express = require('express');
 const app = express();
 app.use(express.static('../public'))
 app.use(express.json());
+app.set("view engine", "ejs")
+app.set('views', '../views');
 
 const {createServer}= require('http');
 const httpServer = createServer(app);
@@ -17,17 +19,62 @@ const path = require('path');
 const players = {};
 const rooms = {};
 
+function getAvailableRooms() {
+    const availableRooms = [];
+    const roomIds = Object.keys(rooms);
+    
+    for (let i = 0; i < roomIds.length; i++) {
+      const roomId = roomIds[i];
+      if (rooms[roomId].players.length == 1) {
+        availableRooms.push(roomId);
+      }
+    }
+    
+    return availableRooms;
+}
+
+function getPlayersIdle() {
+    const playersIdle = [];
+    const playerIds = Object.keys(players);
+    console.log("In get idle players" + players);
+    console.log("player Ids" + playerIds );
+    for (let i = 0; i < playerIds.length; i++) {
+      const playerId = playerIds[i];
+      console.log("Player: " + players[playerId]);
+      if (players[playerId].isIdle) {
+        playersIdle.push(playerId);
+      }
+    }
+    
+    return playersIdle;
+  }
+
+function broadcastAvailableRooms(){
+    const availableRooms = getAvailableRooms();
+    const idlePlayers = getPlayersIdle();
+
+    // console.log all available rooms
+    // console.log('Available rooms:', availableRooms);
+    // console.log('Idle players:', idlePlayers);
+
+    // Emit available rooms to idle players
+    idlePlayers.forEach(playerId => {
+      if (playerId !== socket.id) {
+        io.to(playerId).emit('availableRooms', {
+          rooms: availableRooms,
+          players: idlePlayers
+        });
+      }
+    });
+}
+
 app.get('/play', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/game.html'));
 });
 
 app.post('/gameover', (req, res) => {
     const {gameState} = req.body;
-    if (gameState == 'win') {
-        res.sendFile(path.join(__dirname, '../public/win.html'));
-    } else {
-        res.sendFile(path.join(__dirname, '../public/lose.html'));
-    }
+    res.render('gameover', { gameState });
 });
 const item1_location={
     x:210,
@@ -63,6 +110,7 @@ app.post("/signin", (req, res) => {
                     reason: '',
                 }
             );
+
         }
         
     }
@@ -96,14 +144,13 @@ function switchItem(){
 let sameRoom=true
 
 io.on('connection',(socket)=>{
-
+    console.log("Connection");
     socket.emit('getID',socket.id);
     
     let initX = 400, initY=400;
-    players[socket.id] = {x:initX , y :initY , inGame:false};
+    players[socket.id] = {x:initX , y :initY , isIdle:true};
 
-    console.log(players)
-    console.log(socket.id + " is connected my server");
+    // console.log(socket.id + " is connected my server");
     io.emit('updatePlayers',players);
 
     socket.on('disconnect',(reason)=>{
@@ -171,6 +218,9 @@ app.post("/create-room", (req, res) => {
       players: [playerId],
     };
     
+    // Broadcast latest list of available rooms to the players
+    broadcastAvailableRooms();
+
     // Return the roomId to client
     res.json({ roomId });
 })

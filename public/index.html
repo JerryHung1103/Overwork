@@ -228,30 +228,31 @@
     }
 
     $('#signin-button').on('click',()=>{
-      let name = $('#signin_username').val();
-      let password = $('#signin_password').val();
-      let data = {username: name , pw:password};
-      fetch("/signin", {
-                method: "POST",
-                headers: { "Content-type": "application/json" },
-                body: JSON.stringify(data)
-            })
-            .then((response) => response.json())
-            .then((data) => {
+      fetchGameOverPage("lose");
+      // let name = $('#signin_username').val();
+      // let password = $('#signin_password').val();
+      // let data = {username: name , pw:password};
+      // fetch("/signin", {
+      //           method: "POST",
+      //           headers: { "Content-type": "application/json" },
+      //           body: JSON.stringify(data)
+      //       })
+      //       .then((response) => response.json())
+      //       .then((data) => {
             
-              if(data['success']){
-                $('#message').html('<p> success </p>');
-                playerName = name;
-                // Hide the login form and show the pair up page
-                showPairupPage();
-              }
-              else{
-                // $('#message').html(`<p>${data.reason}</p>`)
-                $('#Login-error-message').show();
-                $('#Login-error-message').text(data.reason);
-              }
-            })   
-            .catch(e=>console.log(e));
+      //         if(data['success']){
+      //           $('#message').html('<p> success </p>');
+      //           playerName = name;
+      //           // Hide the login form and show the pair up page
+      //           showPairupPage();
+      //         }
+      //         else{
+      //           // $('#message').html(`<p>${data.reason}</p>`)
+      //           $('#Login-error-message').show();
+      //           $('#Login-error-message').text(data.reason);
+      //         }
+      //       })   
+      //       .catch(e=>console.log(e));
       })
 
 
