@@ -10,19 +10,18 @@ const httpServer = createServer(app);
 
 const {Server}= require('socket.io');
 const io = new Server(httpServer);
-const PlayerArray=[];
 
 const fs = require('fs');
 
 const path = require('path');
 
 const players = {};
-const playerLeaderboard = {};
+const playerScoreArray=[];
 
 // For index.html
 const rooms = {};
 const playersInLobby = {};
-
+let gameoverStatus;
 
 
 function getAvailableRooms() {
@@ -67,9 +66,8 @@ app.get('/play', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/game.html'));
 });
 
-app.post('/gameover', (req, res) => {
-    const {gameState} = req.body;
-    res.render('gameover', { gameState });
+app.get('/gameover', (req, res) => {
+    res.render('gameover', gameoverStatus);
 });
 
 // For index.html
@@ -237,47 +235,6 @@ function switchItem(){
     })
 }
 
-// app.post('/submit-score', (req, res) => {
-//     const { playerName, score , socket} = req.body;
-  
-//     // Store the player's name and score in the data structure
-//     playerLeaderboard[playerName] = score;
-  
-//     // Check if both players have submitted their scores
-//     if (Object.keys(playerLeaderboard).length == 2) {
-//         // Both players have submitted their scores, perform calculations
-  
-//         // Retrieve score of the 2 players from playerLeaderboard. We don't know the name of the players until they play
-//         const player1Score = playerLeaderboard[Object.keys(playerLeaderboard)[0]];
-//         const player2Score = playerLeaderboard[Object.keys(playerLeaderboard)[1]];
-//         console.log("player1's score: " + player1Score);
-//         console.log("player2's score: " + player2Score);
-
-//         // Swap the ordering of the players in playerLeaderboard if player1's score < player2's score
-//         if (player1Score < player2Score) {
-//             const temp = playerLeaderboard[Object.keys(playerLeaderboard)[0]];
-//             playerLeaderboard[Object.keys(playerLeaderboard)[0]] = playerLeaderboard[Object.keys(playerLeaderboard)[1]];
-//             playerLeaderboard[Object.keys(playerLeaderboard)[1]] = temp;
-//         }
-
-//         // Example: Calculate total score as the sum of player 1 and player 2 scores
-//         const totalScore = player1Score + player2Score;
-  
-//         // Example: Determine win/loss status based on the total score
-//         // Assume always win for now for testing
-//         const winStatus = 'win';
-
-//       // Render the view and pass the necessary data
-//       res.render('result', { playerName, totalScore, winStatus});
-  
-//       // Clear the submitted scores for the next game
-//       playerScores = {};
-//     } else {
-//       // Only one player has submitted their score, display a waiting message or redirect to a waiting page
-//       res.render('waiting', { playerName });
-//     }
-//   });
-
 io.on('connection',(socket)=>{
     // console.log('Connection from:', socket.handshake.headers.referer);
     if (socket.handshake.headers.referer.endsWith('play')) {
@@ -380,6 +337,67 @@ io.on('connection',(socket)=>{
             console.log(state)
             io.emit('updateBarriers',state);
         })
+
+        socket.on('submit-score', ({ name, score}) => {
+            console.log('In Submit score for player: ', name, ' with score: ', score, ' and socketId: ', socket.id);
+            // 1. Create a new player object
+            const player = {
+              name,
+              score,
+              socketId: socket
+            };
+          
+            // 2. Push the player object into the PlayerArray
+            playerScoreArray.push(player);
+        
+            // 3. If playerScoreArray has 2 players, perform calculations to show in the gameover / scoring menu
+            console.log
+            console.log(playerScoreArray);
+            if (playerScoreArray.length == 2) {
+                let player1Score = -Infinity;
+                let player2Score;
+                let player1Name;
+                let player2Name;
+                let totalScore = 0;
+                playerScoreArray.forEach((player) => {
+                    // 3.1. Fetch socket of each player
+                    const { socketId } = socket;
+            
+                    // 3.2. Calculate the total score
+                    totalScore += score;
+            
+                    // 3.3. Rank the players
+                    if (player.score > player1Score) {
+                        // Swap the players
+                        player2Name = player1Name;
+                        player2Score = player1Score;
+                        player1Score = player.score;
+                        player1Name = player.name;
+                    } else{
+                        // No need to swap the player. The rank is already correct
+                        player2Score = player.score;
+                        player2Name = player.name;
+                    }
+                });    
+            
+                // 4. Determine if they players have won or lost
+                // Assume always win for now for testing
+                const gameState = 'win';
+            
+                // 5. Store the gameover status
+                gameoverStatus = {player1Name, player1Score, player2Name, player2Score, totalScore, gameState};
+        
+                // 6. Alert each player that they can now ask for the view
+                playerScoreArray.forEach((player) => {
+                    const { socketId } = player;
+                    socketId.emit('game-is-over');
+                });
+
+                // 7. Empty the playerScoreArray
+                playerScoreArray = [];
+            }
+        });
+
     } else{
         // console.log('Connection established from the index.html page');
     }

@@ -8,8 +8,8 @@ let cvw=1600;
 let cvh=700;
 canvas.width=1600;
 canvas.height=700;
-// const playerWidth=240/10;
-// const playerHeight = 200/8;
+const playerWidth=240/10;
+const playerHeight = 200/8;
 
 const ItemWidth=240/10;
 const ItemHeight = 200/8;
@@ -48,17 +48,25 @@ let browserID;
 // Scoring: Things to pass back to the server when game ends
 const playerName = sessionStorage.getItem('playerName');
 console.log(playerName); 
-let score = 0;
+let score = 100;
+
+function submitScore(name, score) {
+    const data = { name, score};
+  
+    // fetch('/submit-score', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify(data)
+    // });
+    // console.log('finished submitting score');
+
+    socket.emit('submit-score', data);
+    console.log('finished submitting score');
+}
 
 // Gameover page is here for testing right now
-function fetchGameOverPage(gameState){
-    let data = {gameState: gameState};
-
-    fetch('/gameover',{
-                method: "POST",
-                headers: { "Content-type": "application/json" },
-                body: JSON.stringify(data)
-            })
+function fetchGameOverPage(){
+    fetch('/gameover')
     .then(response => {
         if (response.ok) {
         return response.text();
@@ -70,6 +78,16 @@ function fetchGameOverPage(gameState){
         document.body.innerHTML = html;
     })
 }
+
+
+// For testing 
+// socket.on('connect', ()=>{
+//     submitScore(playerName, score);
+// })
+
+socket.on('game-is-over', () => {
+    fetchGameOverPage();
+})
 
 socket.on('getID',id=>browserID=id);
 socket.on('updatePlayers',(backend_players)=>{
@@ -143,20 +161,7 @@ socket.on('displayTask',tasks=>{
         }
     })
     
-
-   
-
 });
-
-
-
-
-
-
-
-
-
-
 
 socket.on('updateBarriers',state=>{
     barriers[state.id].update(state.progressing,state.stopProgres)
@@ -192,13 +197,8 @@ function drawAnimation(now){
         //     else ctx.fillStyle = "black";
         //     ctx.fillRect(i*subtaskWidth,0,subtaskWidth,subtaskHeight)
         // }
-       
-           
-    
-
-       
+        
     }
-    
 
     ctx.drawImage(JobArea,
                 20,200,400,450,
@@ -266,6 +266,8 @@ function drawAnimation(now){
     }
     requestAnimationFrame(drawAnimation);
 }
+
+
 // document.addEventListener('keydown',event=>{
 //     let keycode=event.keyCode;
 //     switch(keycode){
