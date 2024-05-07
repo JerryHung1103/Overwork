@@ -1,15 +1,27 @@
-const Player=function(ctx,src,width,height,x,y,rate,speedTiming,stage){
-    let speed=1;
-    const sequence={
-        stayFront:{row:1, col:3, x:0,y:0,count:3,loop:false},
-        stayLeft:{row:1, col:3, x:0,y:height,count:3,loop:false},
-        stayUp:{row:1, col:1, x:0,y:2*height,count:1,loop:false},
-        stayRight:{row:1, col:3, x:0,y:3*height,count:3,loop:false},
-        movingFront:{row:1, col:10, x:0,y:4*height,count:10,loop:true},
-        movingLeft:{row:1, col:10, x:0,y:5*height,count:10,loop:true},
-        movingUp:{row:1, col:10, x:0,y:6*height,count:10,loop:true},
-        movingRight:{row:1, col:10, x:0,y:7*height,count:10,loop:true}
+const Player=function(socket,ctx,src,width,height,x,y,rate,speedTiming,stage,wall){
+    let doneList={
+        A:0,
+        B:0,
+        C:0,
+        D:0,
+        //...
     }
+    let speed=1;
+    let movingIntival;
+    function setPlayerIntival(intival){
+        movingIntival=intival
+    }
+    const sequence={//movingFront
+        
+        stayUp:{row:1, col:1, x:0,y:0,count:1,loop:false},
+        stayLeft:{row:1, col:1, x:0,y:height,count:1,loop:false},
+        stayFront:{row:1, col:1, x:0,y:2*height,count:1,loop:false},
+        stayRight:{row:1, col:1, x:0,y:3*height,count:1,loop:false},
+        movingUp:{row:1, col:9, x:0,y:0*height,count:9,loop:true},
+        movingLeft:{row:1, col:9, x:0,y:1*height,count:9,loop:true},
+        movingFront:{row:1, col:9, x:0,y:2*height,count:9,loop:true},
+        movingRight:{row:1, col:9, x:0,y:3*height,count:9,loop:true}
+    }//
  
      let player=Character(
         ctx,//context
@@ -24,38 +36,113 @@ const Player=function(ctx,src,width,height,x,y,rate,speedTiming,stage){
         sequence
     );
 
+    function showHalfPlayer(){
+        
+    }
+let IsStopping=true;
     function moveRight(){
-        if(stage!='movingRight'){
+        if(stage!='movingRight' 
+        // &&!IsStopping
+    ){
             stage='movingRight';
             player.setStage('movingRight')
         }
-        x+=speed;
-        player.setX(x);
+        // x+=speed;
+        // player.setX(x);
+        if( !(getCenterY(y)<=wall.y +wall.height && getCenterY(y)>wall.y&&getCenterX(x)<wall.x)  ){
+            x+=speed;
+            player.setX(x);
+            IsStopping=false
+        }
+    
+        else if(getCenterX(x)+speed<wall.x){
+            x+=speed;
+            player.setX(x);
+            IsStopping=false
+        }
+        else{
+          
+            // socket.emit('stop','');  
+            socket.emit('stop');
+            clearInterval(movingIntival)
+            IsStopping=true
+        
+            
+        }
      }
      function moveLeft(){
-        if(stage!='movingLeft'){
+        if(stage!='movingLeft'
+        // &&!IsStopping
+        ){
             stage='movingLeft';
             player.setStage('movingLeft')
         }
-        x-=speed;
-        player.setX(x);
+        // x-=speed;
+        // player.setX(x);
+
+        if( !(getCenterY(y)<=wall.y +wall.height && getCenterY(y)>wall.y &&getCenterX(x)>wall.x+wall.width)  ){
+            x-=speed;
+            player.setX(x);
+        }
+    
+        else if(getCenterX(x)-speed>wall.x+wall.width){
+            x-=speed;
+            player.setX(x);
+        }
+        else{
+            socket.emit('stop');
+            clearInterval(movingIntival)
+            IsStopping=true
+        }
      }
     function moveUp(){
-        if(stage!='movingUp'){
+        if(stage!='movingUp'
+        // &&!IsStopping
+        ){
             stage='movingUp';
             player.setStage('movingUp')
+        }  
+        if( !(getCenterX(x)<=wall.x +wall.width && getCenterX(x)>wall.x && getCenterY(y)>wall.y)  ){
+            y-=speed;
+            player.setY(y);
         }
-        y-=speed;
-        player.setY(y);
+    
+         else if(getCenterY(y)-speed>wall.y+wall.height){
+          
+            y-=speed;
+            player.setY(y);
+        }
+        else{
+            socket.emit('stop');
+            clearInterval(movingIntival)
+            IsStopping=true
+           
+
+        }
      }
 
      function moveFront(){
-        if(stage!='movingFront'){
+        if(stage!='movingFront'
+        // &&!IsStopping
+        ){
             stage='movingFront';
             player.setStage('movingFront')
         }
-        y+=speed;
-        player.setY(y);
+        if( !(getCenterX(x)<=wall.x +wall.width && getCenterX(x)>wall.x  && getCenterY(y)<wall.y)  ){
+            y+=speed;
+            player.setY(y);
+        }
+    
+        else if(getCenterY(y)+speed<wall.y){
+            y+=speed;
+            player.setY(y);
+        }
+        else{
+            socket.emit('stop');
+            clearInterval(movingIntival)
+            IsStopping=true
+        }
+         
      }
      function stop(){
         
@@ -85,13 +172,15 @@ const Player=function(ctx,src,width,height,x,y,rate,speedTiming,stage){
 
      //this can be hard coded
      function getCenterX(){
-        return x+32;
+        return x+64;
     }
     
     
     function getCenterY(){
-        return y+42;
+        return y+75;
     }
+
+   
 
     return{
         moveRight:moveRight,
@@ -107,6 +196,9 @@ const Player=function(ctx,src,width,height,x,y,rate,speedTiming,stage){
         setY:player.setY,
         getStage,
         getCenterX,
-        getCenterY
+        getCenterY,
+        IsStopping,
+        setPlayerIntival,
+        doneList
     };
 }

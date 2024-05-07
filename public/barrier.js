@@ -1,70 +1,9 @@
-const Barrier=(x,y,width,players,socket,progressDuration,id)=>{
-    
-
-    let stopping_state;
-    function StopBarrier(browserID,intivalId,clickX,clickY){
-        let playerX=players[browserID]. getCenterX();
-        let playerY= players[browserID].getCenterY();
-        let rect_y=y;
-        let rect_x = x;
-        let rectWidth =width
-        switch(stopping_state){
-                case 'movingUp':case 'stayUp':
-                    if(clickY<rect_y && playerX>rect_x && playerX<rect_x+rectWidth && playerY>rect_y && playerY<rect_y+rectWidth){
-                        stopping_state=players[browserID].getStage();
-                        clearInterval(intivalId);
-                        socket.emit('stop','');  
-                        return true  
-                    }
-                    else{
-                        return false;
-                    } 
-                    break;
-                case 'movingFront': case 'stayFront':
-                    if(clickY>rect_y +rectWidth && playerX>rect_x && playerX<rect_x+rectWidth && playerY>rect_y && playerY<rect_y+rectWidth){
-                        stopping_state=players[browserID].getStage();
-                        clearInterval(intivalId);
-                        socket.emit('stop','');  
-                        return true  
-                    }
-                    else{
-                        return false;
-                    } 
-                    break;
-                case 'movingLeft':case 'stayLeft':
-                    if(clickX<rect_x && playerX>rect_x && playerX<rect_x+rectWidth && playerY>rect_y && playerY<rect_y+rectWidth){
-                        stopping_state=players[browserID].getStage();
-                        clearInterval(intivalId);
-                        socket.emit('stop','');  
-                        return true  
-                        }
-                        else{
-                            return false;
-                        } 
-                        break;
-                case 'movingRight':case 'stayRight':
-                    if( clickX>rect_x+rectWidth && playerX>rect_x && playerX<rect_x+rectWidth && playerY>rect_y && playerY<rect_y+rectWidth){
-                        stopping_state=players[browserID].getStage();
-                        clearInterval(intivalId);
-                        socket.emit('stop','');  
-                        return true  
-                    }
-                    else{
-                        return false;
-                    } 
-                    break;   
-    
-                default: 
-                    if(playerX>rect_x && playerX<rect_x+rectWidth && playerY>rect_y && playerY<rect_y+rectWidth){
-                        console.log('stoppppppppppppppppppppp')
-                        stopping_state=players[browserID].getStage();
-                        clearInterval(intivalId);
-                        socket.emit('stop','');  
-                        return true  
-                    }
-                    return false;
-            }
-}
+const Barrier=(x,y,width,height,players,socket,progressDuration,id,type,item)=>{
+//     let item
+//    function setItem(i){
+//         item=i;
+//    }
+   
 
 function Set_stopping_state(stage){
     stopping_state=stage
@@ -76,24 +15,43 @@ let barheight = 5;
 
 let progress=barwidth;
 function startProgress(ctx){
-    if(progress>=barwidth){
-        if(playerInside){//finished
-            console.log(playerInside,"finished")
-            playerInside=null;
-        }
-        //else not start yet
-        progressing=false
-        return
-    }
-
     
-    ctx.fillStyle = "red"; // Set the color of the empty bar
-    ctx.fillRect(x, y-10, barwidth, barheight); // Draw the empty bar
-    ctx.fillStyle = "#4caf50";
-    ctx.fillRect(x,y-10,(progress), barheight); 
-    ctx.fillStyle = "black";
-    if(!stopProgres )
-        progress+=progressDuration;
+        if(progress>=barwidth){
+            if(playerInside){//finished
+                if(item)
+               { 
+                // console.log(playerInside,"finished",'type',item.item.type)
+                socket.emit('finish_subTask',item.item.type)
+                playerInside.doneList[item.item.type]++;
+                console.log( playerInside.doneList)
+                item.show=false;
+            }
+                playerInside=null;
+            }
+            //else not start yet
+            progressing=false
+            return
+        }
+
+        if(item && item.show){
+            ctx.fillStyle = "red"; // Set the color of the empty bar
+            ctx.fillRect(x, y-10, barwidth, barheight); // Draw the empty bar
+            ctx.fillStyle = "#4caf50";
+            ctx.fillRect(x,y-10,(progress), barheight); 
+            ctx.fillStyle = "black";
+            if(!stopProgres )
+                progress+=progressDuration;
+
+        }
+        else{
+            progress=barwidth;
+        }
+    
+        
+       
+
+  
+    
 }
 
 function startCountDown(){
@@ -106,15 +64,17 @@ let progressing=false
 let stopProgres=false;
 let margin = 20;
 function checkPlayer(p){
+    if(item && !item.show) return -1;
     let playerX=p.getCenterX();
     let playerY = p.getCenterY()
     let topleftX = x-margin;
     let topleftY = y-margin;
     let areaWidth = width+2*margin;
+    let areaHeight = height+2*margin;
     if( playerX>topleftX && 
         playerX<topleftX+areaWidth && 
         playerY>topleftY && 
-        playerY<topleftY+areaWidth 
+        playerY<topleftY+areaHeight 
     ){      
             //one player inside the job area
             if(!playerInside)
@@ -125,6 +85,7 @@ function checkPlayer(p){
                 socket.emit('update_barrier',{id:id,progressing:progressing,stopProgres:stopProgres})
                 return 0;
             }
+           
         }
    else {
         if(progressing && playerInside==p){
@@ -149,7 +110,8 @@ return{
     x,
     y,
     width,
-    StopBarrier,
+    height,
+    // StopBarrier,
     Set_stopping_state,
     startCountDown,
     startProgress,
@@ -157,7 +119,9 @@ return{
     margin,
     progressing,
     stopProgres,
-    update
+    update,
+    type,
+    // setItem
 
 }
 
