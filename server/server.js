@@ -36,6 +36,15 @@ function getAvailableRooms() {
     return availableRooms;
 }
 
+function broadcastAvailableRooms() {
+    const availableRooms = getAvailableRooms();
+    const broadcastData = {
+      availableRooms: availableRooms
+    };
+
+    io.emit('broadcastRooms', broadcastData);
+}
+
 function getPlayersIdle() {
     const playersIdle = [];
     const playerIds = Object.keys(playersInLobby);
@@ -49,19 +58,6 @@ function getPlayersIdle() {
     
     return playersIdle;
   }
-
-function broadcastAvailableRooms(){
-    const availableRooms = getAvailableRooms();
-    const idlePlayers = getPlayersIdle();
-
-    // Emit available rooms to idle players
-    idlePlayers.forEach(playerId => {
-        io.to(playerId).emit('availableRooms', {
-          rooms: availableRooms,
-          players: idlePlayers
-        });
-    });
-}
 
 app.get('/play', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/game.html'));
@@ -140,66 +136,74 @@ function switchItem(){
 let sameRoom=true
 
 io.on('connection',(socket)=>{
-    socket.emit('getID',socket.id);
+    // console.log('Connection from:', socket.handshake.headers.referer);
+    if (socket.handshake.headers.referer.endsWith('play')) {
+        // console.log('Connection established from the game.html page');
+        socket.emit('getID',socket.id);
     
-    let initX = 400, initY=400;
-    players[socket.id] = {x:initX , y :initY};
-
-    // console.log(socket.id + " is connected my server");
-    io.emit('updatePlayers',players);
-
-    socket.on('disconnect',(reason)=>{
-        console.log(reason);
-        delete players[socket.id];
+        let initX = 400, initY=400;
+        players[socket.id] = {x:initX , y :initY};
+    
+        // console.log(socket.id + " is connected my server");
         io.emit('updatePlayers',players);
-    })
     
-    io.emit('drawItem',item1_location);
-    if(sameRoom)
-        {
-            setInterval(switchItem,5000);//Make it random
-            sameRoom=false
-        }
-      socket.on('print',()=>{
-        console.log('calling server print',players)
-    })
-  
-    
-    socket.on('moveRight',(obj)=>{
-        io.emit('moveByID',socket.id);
-    })
-     socket.on('updatePos',pos=>{
-        players[socket.id]={x:pos.x , y:pos.y}
-    })
-    socket.on('move',(obj)=>{
-        switch(obj){
-            case 'right':
-                io.emit('moveByID_right',socket.id);
-                break;
-            case 'left':
-                io.emit('moveByID_left',socket.id);
-                break;
-            case 'up':
-                io.emit('moveByID_up',socket.id);
-                break;
-            case 'front':
-                io.emit('moveByID_front',socket.id);
-                break;
-        }
+        socket.on('disconnect',(reason)=>{
+            console.log(reason);
+            delete players[socket.id];
+            io.emit('updatePlayers',players);
+        })
         
-    })
-    
-    socket.on('stop',(obj)=>{
-        io.emit('stopByID',socket.id);
-    }) 
-    socket.on('start_progress',index=>{
-        io.emit('receive_progress',index);
-    })
-    // socket.emit('update_barrier',id)
-    socket.on('update_barrier',state=>{
-        console.log(state)
-        io.emit('updateBarriers',state);
-    })
+        io.emit('drawItem',item1_location);
+        if(sameRoom)
+            {
+                setInterval(switchItem,5000);//Make it random
+                sameRoom=false
+            }
+          socket.on('print',()=>{
+            console.log('calling server print',players)
+        })
+      
+        
+        socket.on('moveRight',(obj)=>{
+            io.emit('moveByID',socket.id);
+        })
+         socket.on('updatePos',pos=>{
+            players[socket.id]={x:pos.x , y:pos.y}
+        })
+        socket.on('move',(obj)=>{
+            switch(obj){
+                case 'right':
+                    io.emit('moveByID_right',socket.id);
+                    break;
+                case 'left':
+                    io.emit('moveByID_left',socket.id);
+                    break;
+                case 'up':
+                    io.emit('moveByID_up',socket.id);
+                    break;
+                case 'front':
+                    io.emit('moveByID_front',socket.id);
+                    break;
+            }
+            
+        })
+        
+        socket.on('stop',(obj)=>{
+            io.emit('stopByID',socket.id);
+        }) 
+        socket.on('start_progress',index=>{
+            io.emit('receive_progress',index);
+        })
+        // socket.emit('update_barrier',id)
+        socket.on('update_barrier',state=>{
+            console.log(state)
+            io.emit('updateBarriers',state);
+        })
+
+    } else{
+        // console.log('Connection established from the index.html page');
+    }
+
 })
 
 app.get('/get-available-rooms',(req,res)=>{
@@ -220,6 +224,7 @@ app.post("/create-room", (req, res) => {
     };
     
     playersInLobby[playerId] = { isIdle: false };
+
     // Broadcast latest list of available rooms to the players
     broadcastAvailableRooms();
 
@@ -227,22 +232,26 @@ app.post("/create-room", (req, res) => {
     res.json({ roomId });
 })
 
-// This needs socket....
 app.post("/join-room", (req, res) => {
+    console.log("Join room");
     const { playerId, roomId } = req.body;
 
     // Join the room
     rooms[roomId].players.push(playerId);
     // Alert the other player in the room that the room is now full, send them a message to start the game
     const otherPlayerId = rooms[roomId].players[0];
+
+    console.log("Send start game message to: ", otherPlayerId);
     io.emit('startGame', otherPlayerId);
 
     playersInLobby[playerId] = { isIdle: false };
     // Broadcast latest list of available rooms to the players
     broadcastAvailableRooms();
 
-    // Send the player to the game room
-    res.sendFile(path.join(__dirname, '../public/game.html'));
+    console.log("Send start game message to: ", playerId);
+    io.emit('startGame', playerId);
+    // Send the room id to the client
+    res.json({ roomId });
 });
 
 httpServer.listen(8000);
