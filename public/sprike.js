@@ -46,9 +46,9 @@ const Character=function(ctx,image,width,height,x,y,rate,timing,stage,sequence){
             ctx.drawImage(
                 image,
                 sequence[stage].x+X_index*width,
-                sequence[stage].y+Y_index*height,
+                sequence[stage].y+Y_index*height ,
                 width,
-                height,
+                height ,
                 x,
                 y,
                 width*rate,

@@ -1,4 +1,4 @@
-const Item=function(ctx,src,width,height,x,y,rate,speedTiming,stage){
+const Item=function(ctx,src,width,height,x,y,rate,speedTiming,stage,type){
     const sequence={
         stayFront:{row:1, col:3, x:0,y:0,count:3,loop:false},
         stayLeft:{row:1, col:3, x:0,y:height,count:3,loop:false},
@@ -34,5 +34,7 @@ const Item=function(ctx,src,width,height,x,y,rate,speedTiming,stage){
         getY:item.getY,
         setX:item.setX,
         setY:item.setY,
+        setSrc:item.setSrc,
+        type
     };
 }

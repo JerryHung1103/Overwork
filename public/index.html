@@ -195,6 +195,10 @@
       console.log()
       if (data == playerName){
         console.log("Redirecting to game page");
+
+        // Store the player name in the session storage
+        sessionStorage.setItem('playerName', playerName);
+
         fetchGamePage();
       }
     });
@@ -283,27 +287,6 @@
             throw new Error('Failed to load play.html');
           }
         })
-    }
-
-    // Gameover page is here for testing right now
-    function fetchGameOverPage(gameState){
-      let data = {gameState: gameState};
-
-      fetch('/gameover',{
-                method: "POST",
-                headers: { "Content-type": "application/json" },
-                body: JSON.stringify(data)
-            })
-      .then(response => {
-        if (response.ok) {
-          return response.text();
-        } else {
-          throw new Error('Failed to load gameover page');
-        }
-      })
-      .then(html => {
-        document.body.innerHTML = html;
-      })
     }
 
     $('#signin-button').on('click',()=>{
