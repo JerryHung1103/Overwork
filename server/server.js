@@ -188,30 +188,56 @@ let sameRoom=true;
 let temp=true;
 const itemArray=[
     {
-        x:270,
-        y:540,
+        x:235,
+        y:545,
         show:true,
         type:'A'
     },
     {
-        x:640,
-        y:540,
+        x:235+360,
+        y:545,
         show:true,
         type:'B'
     },
     {
-        x:1010,
-        y:540,
+        x:235+360*2,
+        y:545,
         show:true,
         type:'C'
     },
     {
-        x:1380,
-        y:540,
+        x:235+360*3,
+        y:545,
+        show:true,
+        type:'D'
+    },
+    {
+        x:440,
+        y:340,
+        show:true,
+        type:'A'
+    },
+    {
+        x:440+360,
+        y:340,
+        show:true,
+        type:'B'
+    },
+    {
+        x:440+360*2,
+        y:340,
+        show:true,
+        type:'C'
+    },
+    {
+        x:440+360*3,
+        y:340,
         show:true,
         type:'D'
     }
+    
 ]
+
 
 var tasks = [
     {  subtasks: generateRandomSubtasks() , duration :20},
@@ -249,6 +275,7 @@ function switchItem(){
     })
 }
 
+
 io.on('connection',(socket)=>{
     // console.log('Connection from:', socket.handshake.headers.referer);
     if (socket.handshake.headers.referer.endsWith('play')) {
@@ -260,7 +287,7 @@ io.on('connection',(socket)=>{
                     t.duration--;
                     if(t.duration===0){
                         t.subtasks=generateRandomSubtasks();
-                        t.duration=20;
+                        t.duration=200;
                        
                     }
                 });
@@ -271,8 +298,8 @@ io.on('connection',(socket)=>{
         }
     
         socket.on('finish_subTask',subTask=>{
-    
-    
+
+
             for(let i=0;i<tasks.length;++i){
                 let task=tasks[i];
                 var indexToRemove = task.subtasks.indexOf(subTask);
@@ -292,11 +319,13 @@ io.on('connection',(socket)=>{
 
         socket.emit('getID',socket.id);
     
-        let initX = 400, initY=400;
-        players[socket.id] = {x:initX , y :initY , inGame:false};
-    
-        console.log(players)
-        console.log(socket.id + " is connected my server");
+        let initX = 600, initY=455;
+        players[socket.id] = {x:initX , y :initY , inGame:false,doneList:{
+         A:0,B:0,C:0,D:0//...
+        }};
+
+        // console.log('construct player is',players)
+        // console.log(socket.id + " is connected my server");
         io.emit('updatePlayers',players);
     
         socket.on('disconnect',(reason)=>{
@@ -311,16 +340,17 @@ io.on('connection',(socket)=>{
                 setInterval(switchItem,1000000);//Make it random
                 sameRoom=false
             }
-          socket.on('print',()=>{
-            console.log('calling server print',players)
-        })
+        //   socket.on('print',()=>{
+        //     console.log('calling server print',players)
+        // })
       
         
         socket.on('moveRight',(obj)=>{
             io.emit('moveByID',socket.id);
         })
          socket.on('updatePos',pos=>{
-            players[socket.id]={x:pos.x , y:pos.y}
+            players[socket.id].x=pos.x;
+            players[socket.id].y=pos.y;
         })
         socket.on('move',(obj)=>{
             switch(obj){
@@ -348,9 +378,46 @@ io.on('connection',(socket)=>{
         })
         // socket.emit('update_barrier',id)
         socket.on('update_barrier',state=>{
-            console.log(state)
+            // console.log(state)
             io.emit('updateBarriers',state);
         })
+        socket.on('uppdateDoneList',info=>{
+            if(socket.id===info.id){
+            let copy = info.list
+            players[info.id].doneList=copy;
+            console.log('now ',info.id,' is calling')
+            console.log( ' with the list',players[info.id].doneList)
+            console.log('update player is',players)
+            io.emit('updatePlayers',players);}
+        })
+        socket.on('handInTask',(id)=>{
+            let list = players[id].doneList;
+            console.log(id,'is submitting')
+            console.log('submit list is',list)
+            for(let i=0;i<tasks.length;++i){
+    
+                let flg=true;
+                for(let j=0;j<tasks[i].subtasks.length;++j){
+                    if(list[tasks[i].subtasks[j]]===0)
+                        flg=false
+                }
+                if(flg){
+                    console.log('can')
+                   
+                    for(let j=0;j<tasks[i].subtasks.length;++j){
+                        players[id].doneList[tasks[i].subtasks[j]]--
+                           
+                    }
+                    tasks[i].subtasks=generateRandomSubtasks();
+                    tasks[i].duration=200
+                    io.emit('updatePlayers',players);
+                    
+    
+    
+                }
+            }
+        })
+
 
         socket.on('submit-score', ({ name, score}) => {
             console.log('In Submit score for player: ', name, ' with score: ', score, ' and socketId: ', socket.id);
@@ -420,3 +487,4 @@ io.on('connection',(socket)=>{
 
 
 httpServer.listen(8000);
+

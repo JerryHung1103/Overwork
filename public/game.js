@@ -8,8 +8,9 @@ let cvw=1600;
 let cvh=700;
 canvas.width=1600;
 canvas.height=700;
-const playerWidth=240/10;
-const playerHeight = 200/8;
+
+const playerWidth=576/9;
+const playerHeight = 256/4;
 
 const ItemWidth=240/10;
 const ItemHeight = 200/8;
@@ -22,10 +23,18 @@ let JobArea = new Image();
 //height is 44
 //gap is 3, first one is 2
 //gap height is 2
-
-
 //first item is 2.2 and 10,10
 
+// Play BGM
+const audio = new Audio('audio/bgm.mp3');
+audio.volume = 0.5; // Adjust the volume value as desired (between 0.0 and 1.0)
+
+audio.addEventListener('canplaythrough', () => {
+  audio.play();
+});
+
+
+// Load the image sprites
 backgroundImg.src = '/image/background.png';
 backgroundImg.onload=()=>{
     // Draw background img covering the whole canvas
@@ -66,6 +75,11 @@ function submitScore(name, score) {
 
 // Gameover page is here for testing right now
 function fetchGameOverPage(){
+    // Pause the audios
+    console.log("pausing audio");
+    audio.pause();
+    audio.src = '';
+
     fetch('/gameover')
     .then(response => {
         if (response.ok) {
@@ -75,12 +89,13 @@ function fetchGameOverPage(){
         }
     })
     .then(html => {
+        // Switch to gameover page
         document.body.innerHTML = html;
     })
 }
 
 
-// For testing 
+// //For testing 
 // socket.on('connect', ()=>{
 //     submitScore(playerName, score);
 // })
@@ -90,21 +105,89 @@ socket.on('game-is-over', () => {
 })
 
 socket.on('getID',id=>browserID=id);
+const wall=[
+    {x:1250,y:250,width:150,height:115,type:'submission'},
+    {x:0,y:260,width:2000,height:100,type:'wall'},
+
+    {x:145,y:550,width:140,height:50,type:'wall'},
+    {x:145,y:550+95,width:140,height:50,type:'wall'},
+    {x:280,y:550,width:5,height:95,type:'wall'},
+    {x:210,y:580,width:70,height:65,type:'wall'},
+ 
+
+    {x:145+360,y:550,width:140,height:50,type:'wall'},
+    {x:145+360,y:550+95,width:140,height:50,type:'wall'},
+    {x:280+360,y:550,width:5,height:95,type:'wall'},
+    {x:210+360,y:580,width:70,height:65,type:'wall'},
+
+    {x:145+360*2,y:550,width:140,height:50,type:'wall'},
+    {x:145+360*2,y:550+95,width:140,height:50,type:'wall'},
+    {x:280+360*2,y:550,width:5,height:95,type:'wall'},
+    {x:210+360*2,y:580,width:70,height:65,type:'wall'},
+
+    {x:145+360*3,y:550,width:140,height:50,type:'wall'},
+    {x:145+360*3,y:550+95,width:140,height:50,type:'wall'},
+    {x:280+360*3,y:550,width:5,height:95,type:'wall'},
+    {x:210+360*3,y:580,width:70,height:65,type:'wall'},
+
+
+
+    //1st row
+    {x:350,y:350,width:140,height:50,type:'wall'},
+    {x:350,y:350+95,width:140,height:50,type:'wall'},
+    {x:490,y:350,width:5,height:95,type:'wall'},
+    {x:420,y:380,width:70,height:65,type:'wall'},
+
+    {x:350+360,y:350,width:140,height:50,type:'wall'},
+    {x:350+360,y:350+95,width:140,height:50,type:'wall'},
+    {x:490+360,y:350,width:5,height:95,type:'wall'},
+    {x:420+360,y:380,width:70,height:65,type:'wall'},
+
+    {x:350+360*2,y:350,width:140,height:50,type:'wall'},
+    {x:350+360*2,y:350+95,width:140,height:50,type:'wall'},
+    {x:490+360*2,y:350,width:5,height:95,type:'wall'},
+    {x:420+360*2,y:380,width:70,height:65,type:'wall'},
+
+    {x:350+360*3,y:350,width:140,height:50,type:'wall'},
+    {x:350+360*3,y:350+95,width:140,height:50,type:'wall'},
+    {x:490+360*3,y:350,width:5,height:95,type:'wall'},
+    {x:420+360*3,y:380,width:70,height:65,type:'wall'},
+  
+]
+
 socket.on('updatePlayers',(backend_players)=>{
     for(const id in backend_players){
         const pos = backend_players[id];
         if(!players[id]){
-            players[id]=Player(socket,ctx,playerImg,playerWidth,playerHeight,pos.x,pos.y,2,50, 'stayFront',
-            {x:700,y:250,width:300,height:100})
+            players[id]=Player(socket,id,ctx,playerImg,playerWidth,playerHeight,pos.x,pos.y,2,50, 'stayFront',
+            wall,pos.doneList)
         }
+        else{
+            players[id].setdoneList(pos.doneList)
+        }
+        
     }
+
     for(const id in players){
         if(!backend_players[id]){
             delete players[id];
         }
     }
-})
 
+    console.log('after updating', players)
+    
+})
+socket.on('updateDoneList',info=>{
+   
+    console.log(info.list)
+    console.log(players)
+    console.log('=======================')
+     players[info.id].setdoneList(info.list)
+     
+     console.log(players[info.id].doneList)
+     console.log('=======================')
+     console.log(players)
+ })
 let itemImageMap={
     // Task name : taks sprite
 }
@@ -120,11 +203,18 @@ socket.on('drawItem',backendItemArray=>{
         }))
         barriers = [
 
-            Barrier(235,565,100,65,players,socket,0.5,0,'jobArea',item1[0]),
-            Barrier(600,565,100,65,players,socket,.5,1,'jobArea',item1[1]),
-            Barrier(960,565,100,65,players,socket,.5,2,'jobArea',item1[2]),
-            Barrier(1320,565,100,65,players,socket,.5,3,'jobArea',item1[3]),
+          
+            Barrier(210,580,70,65,players,socket,0.5,0,'jobArea',item1[0]),
+            Barrier(210+360,580,70,65,players,socket,.5,1,'jobArea',item1[1]),
+            Barrier(210+360*2,580,70,65,players,socket,.5,2,'jobArea',item1[2]),
+            Barrier(210+360*3,580,70,65,players,socket,.5,3,'jobArea',item1[3]),
             //initx intiy width height playerList socket(optional actually   is not needed), bar rate, id, type
+          
+            Barrier(420,380,70,65,players,socket,0.5,0,'jobArea',item1[4]),
+            Barrier(420+360,380,70,65,players,socket,.5,1,'jobArea',item1[5]),
+            Barrier(420+360*2,380,70,65,players,socket,.5,2,'jobArea',item1[6]),
+            Barrier(420+360*3,380,70,65,players,socket,.5,3,'jobArea',item1[7]),
+        
         
         ];
    
@@ -197,38 +287,74 @@ function drawAnimation(now){
         //     else ctx.fillStyle = "black";
         //     ctx.fillRect(i*subtaskWidth,0,subtaskWidth,subtaskHeight)
         // }
-        
+       
+           
+    
+
+       
     }
 
+    const tableWidth=150
+    const secondRowY=550
+    const firstRowY=350
+    const firstRowstartingX=350
     ctx.drawImage(JobArea,
                 20,200,400,450,
-                140,500,200,200
+                140,secondRowY,tableWidth,tableWidth
             )//Drawing the jobTable
     ctx.drawImage(JobArea,
                 20,200,400,450,
-                500,500,200,200
+                500,secondRowY,tableWidth,tableWidth
             )//Drawing the jobTable
     ctx.drawImage(JobArea,
                 20,200,400,450,
-                860,500,200,200
+                860,secondRowY,tableWidth,tableWidth
             )//Drawing the jobTable
     ctx.drawImage(JobArea,
                 20,200,400,450,
-                1220,500,200,200
+                1220,secondRowY,tableWidth,tableWidth
             )//Drawing the jobTable
+
+
+    //first row
+    ctx.drawImage(JobArea,
+                20,200,400,450,
+                firstRowstartingX,firstRowY,tableWidth,tableWidth
+            )//Drawing the jobTable
+    ctx.drawImage(JobArea,
+                20,200,400,450,
+                firstRowstartingX+360,firstRowY,tableWidth,tableWidth
+            )//Drawing the jobTable
+    ctx.drawImage(JobArea,
+                20,200,400,450,
+                firstRowstartingX+2*360,firstRowY,tableWidth,tableWidth
+            )//Drawing the jobTable
+    ctx.drawImage(JobArea,
+                20,200,400,450,
+                firstRowstartingX+3*360,firstRowY,tableWidth,tableWidth
+            )//Drawing the jobTable
+
+    
     if(barriers){
         barriers.filter(b=>b.type !='wall')
-                .forEach(barrier=>barrier.startProgress(ctx))
+                .forEach(barrier=>barrier.startProgress(ctx,socket))
         ctx.fillStyle = "#4caf50";
         ctx.lineWidth = 2; // Set the line width of the rectangle outline
-        barriers.forEach(barrier=>ctx.strokeRect(barrier.x-barrier.margin,barrier.y-barrier.margin,barrier.width+2*barrier.margin,barrier.height+2*barrier.margin))
+        barriers.forEach(barrier=>ctx.strokeRect(
+            barrier.x-barrier.margin,
+            barrier.y,
+            barrier.width+1*barrier.margin,
+            barrier.height+0*barrier.margin))
         //the job area
 
         ctx.fillStyle = "black";
-        barriers.forEach(barrier=>ctx.fillRect(barrier.x,barrier.y,barrier.width,barrier.height))
+        barriers.forEach(barrier=>ctx.strokeRect(barrier.x,barrier.y,barrier.width,barrier.height))
 
 
-        ctx.fillRect(700,250,300,100)
+        // ctx.fillRect(700,250,300,100)
+        wall.forEach(w=>{
+            ctx.strokeRect(w.x,w.y,w.width,w.height)
+        })
     }// visualize the barriers
 
     if(item1){
@@ -245,6 +371,7 @@ function drawAnimation(now){
     // }
        
     for(const id in players){
+        // console.log(id)
         players[id].update(now);
         players[id].draw();
         ctx.fillStyle = 'red';
@@ -258,7 +385,7 @@ function drawAnimation(now){
         ctx.fillStyle = 'black';
         if(barriers){
             barriers.forEach((barrier,index)=>{
-                if(barrier.checkPlayer(players[id])!=-1 ){//and index is currentlu active
+                if(barrier.checkPlayer(players[id],id)!=-1 ){//and index is currentlu active
                     barriers[index].startCountDown()//check if players are entering the job area
                 } 
             })
@@ -574,6 +701,9 @@ canvas.addEventListener('click', function(event) {
             
         }
 });
+
+
+
 
 
 
