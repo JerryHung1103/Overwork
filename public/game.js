@@ -15,9 +15,14 @@ const playerHeight = 256/4;
 const ItemWidth=240/10;
 const ItemHeight = 200/8;
 
+const teaWidth = 360/4;
+const teaHeight = 120;
+ 
 let playerImg=new Image();
 let itemImg = new Image();
 let backgroundImg = new Image();
+let teaSteamImg = new Image();
+let birdImg = new Image();
 let JobArea = new Image();
 //width is 38
 //height is 44
@@ -35,21 +40,27 @@ audio.addEventListener('canplaythrough', () => {
 
 
 // Load the image sprites
-backgroundImg.src = '/image/background.png';
 backgroundImg.onload=()=>{
     // Draw background img covering the whole canvas
     ctx.drawImage(backgroundImg,0,0,canvas.width,canvas.height);
     playerImg.onload=()=>{
         itemImg.onload=()=>{
-            JobArea.onload=()=>{
-                requestAnimationFrame(drawAnimation);
+                teaSteamImg.onload=()=>{
+                birdImg.onload=()=>{
+                    JobArea.onload=()=>{
+                        requestAnimationFrame(drawAnimation);
+                    }
+                    JobArea.src='/image/GameObjectSpriteSheet.png'
+                }
+                birdImg.src='/image/BirdSprite.png'
             }
-            JobArea.src='/image/GameObjectSpriteSheet.png'
+            teaSteamImg.src='/image/TeaSteam.png'
         }
-        itemImg.src= '/image/player_sprite.png'
+        itemImg.src = '/image/player_sprite.png'
     }
     playerImg.src= '/image/BusinessManSprites.png'
 }
+backgroundImg.src = '/image/background.png';
 
 const players = {}
 let browserID;
@@ -264,6 +275,12 @@ function drawAnimation(now){
     // Redraw the background
     ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
 
+    // Draw tea animation
+    const frameIndex = Math.floor(now / 100) % 4; // Change frame every 100 milliseconds
+    const teaframeX = frameIndex * teaWidth;
+    ctx.drawImage(teaSteamImg, teaframeX, 0, teaWidth, teaHeight, 250, 320, teaWidth / 3.5, teaHeight / 3.5);    
+    // Draw bird animation
+
     if(task){
         // ctx.lineWidth = 2; 
         // ctx.strokeRect(0,0,numberofCurrentTask*subtaskWidth,50)
@@ -287,11 +304,7 @@ function drawAnimation(now){
         //     else ctx.fillStyle = "black";
         //     ctx.fillRect(i*subtaskWidth,0,subtaskWidth,subtaskHeight)
         // }
-       
-           
     
-
-       
     }
 
     const tableWidth=150
