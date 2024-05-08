@@ -378,7 +378,7 @@
       })
       .then(data => {
         console.log(data);  
-        $('#status').text('Room created. Room ID: ' + data.roomId + ' .Waiting for another player to join...');
+        $('#status').html('Room created. Room ID: ' + data.roomId + '. <br>Waiting for another player to join...');
         sessionStorage.setItem('roomId', data.roomId);
         sessionStorage.setItem('isRoomHost', true);
 
