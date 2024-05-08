@@ -16,7 +16,7 @@ const fs = require('fs');
 const path = require('path');
 
 const players = {};
-const playerScoreArray=[];
+let playerScoreArray=[];
 
 // For index.html
 const rooms = {};
@@ -182,7 +182,7 @@ app.get('/remove-room', (req, res) => {
       res.sendStatus(404);
     }
   });
-  
+
 // For game.html
 let sameRoom=true;
 let temp=true;
