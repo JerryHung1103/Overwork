@@ -238,6 +238,27 @@
       });
     });
 
+    window.addEventListener('beforeunload', function (event) {
+    const isRoomHost = sessionStorage.getItem('isRoomHost');
+    if (isRoomHost) {
+      // Get the roomId from session storage
+      const roomId = sessionStorage.getItem('roomId');
+      // Send a request to the server to remove the room
+      fetch(`/remove-room?roomId=${roomId}`, { method: 'GET' })
+        .then((response) => {
+          // Remove from session storage
+          sessionStorage.removeItem('roomId');
+          sessionStorage.removeItem('isRoomHost');
+        })
+        .catch((error) => {
+          console.log('Failed to remove the room', error);
+        });
+    }
+  });
+
+
+
+
     function showHomePage(){
       $('#HomePage').show();
       var pairupPage = document.getElementById("PairUp");
@@ -302,7 +323,6 @@
             .then((data) => {
             
               if(data['success']){
-                $('#message').html('<p> success </p>');
                 playerName = name;
 
                 // Hide the login form and show the pair up page        
@@ -331,7 +351,6 @@
             .then((data) => {
             
               if(data['success']){
-                $('#message').html('<p>success</p>');
                 playerName = name;
                 
                 showPairupPage();
@@ -360,6 +379,9 @@
       .then(data => {
         console.log(data);  
         $('#status').text('Room created. Room ID: ' + data.roomId + ' .Waiting for another player to join...');
+        sessionStorage.setItem('roomId', data.roomId);
+        sessionStorage.setItem('isRoomHost', true);
+
         $('#create-room-pairing-button-container').hide();
         $('#room-join-form').hide();
       })
