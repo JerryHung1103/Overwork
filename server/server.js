@@ -186,40 +186,63 @@ app.get('/remove-room', (req, res) => {
 // For game.html
 let sameRoom=true;
 let temp=true;
-// const socketMap = {};
-let numberOfClient=0;
-
 const itemArray=[
     {
-        x:270,
-        y:540,
+        x:235,
+        y:545,
         show:true,
         type:'A'
     },
     {
-        x:640,
-        y:540,
+        x:235+360,
+        y:545,
         show:true,
         type:'B'
     },
     {
-        x:1010,
-        y:540,
+        x:235+360*2,
+        y:545,
         show:true,
         type:'C'
     },
     {
-        x:1380,
-        y:540,
+        x:235+360*3,
+        y:545,
+        show:true,
+        type:'D'
+    },
+    {
+        x:440,
+        y:340,
+        show:true,
+        type:'A'
+    },
+    {
+        x:440+360,
+        y:340,
+        show:true,
+        type:'B'
+    },
+    {
+        x:440+360*2,
+        y:340,
+        show:true,
+        type:'C'
+    },
+    {
+        x:440+360*3,
+        y:340,
         show:true,
         type:'D'
     }
+    
 ]
 
+
 var tasks = [
-    {  subtasks: generateRandomSubtasks() , duration :200},
-    {  subtasks: generateRandomSubtasks() , duration :200},
-    {  subtasks: generateRandomSubtasks() , duration :200}
+    {  subtasks: generateRandomSubtasks() , duration :20},
+    {  subtasks: generateRandomSubtasks() , duration :20},
+    {  subtasks: generateRandomSubtasks() , duration :20}
 ];
 
 //return sub set of task
@@ -252,169 +275,151 @@ function switchItem(){
     })
 }
 
+
 io.on('connection',(socket)=>{
     // console.log('Connection from:', socket.handshake.headers.referer);
     if (socket.handshake.headers.referer.endsWith('play')) {
         // console.log('Connection established from the game.html page');
-        // socket.on('update_socketMap',s=>{
-    //     socketMap[socket.id]=s;
-    //     io.emit('update_socketMap',socketMap)
-    // })
-    // socketMap[socket.id]=socket
-    numberOfClient++;
-    io.emit('displayTask',tasks);//to be implement as same room
-    if(temp){
-        setInterval(()=>{
-            tasks.forEach(t=>{
-                t.duration--;
-                if(t.duration===0){
-                    t.subtasks=generateRandomSubtasks();
-                    t.duration=20;
-                   
-                }
-            });
-            io.emit('displayTask',tasks);//to be implement as same room
-            // console.log(tasks[0].duration)
-        },1000)
-        temp=false;
-    }
-
-   
-
-    socket.on('finish_subTask',subTask=>{
-
-
-        for(let i=0;i<tasks.length;++i){
-            let task=tasks[i];
-            var indexToRemove = task.subtasks.indexOf(subTask);
-            if (indexToRemove !== -1) {
-                // Remove the element
-                // console.log("old task",tasks)
-                task.subtasks.splice(indexToRemove, 1);
-                
-                if(task.subtasks.length===0){//finish one big task
-                    task.subtasks=generateRandomSubtasks();
-                }
-                // console.log("now task",tasks)
-                io.emit('displayTask',tasks);//to be implement as same room
-                break;
-        }
-    }})   
-   
-    socket.emit('getID',socket.id);
-    
-    let initX = 400, initY=400;
-    players[socket.id] = {x:initX , y :initY , inGame:false,doneList:{
-        A:0,B:0,C:0,D:0//...
-    }};
-
-    console.log('construct player is',players)
-    // console.log(socket.id + " is connected my server");
-    io.emit('updatePlayers',players);
-
-    socket.on('disconnect',(reason)=>{
-        numberOfClient--;
-        console.log(reason);
-        delete players[socket.id];
-        io.emit('updatePlayers',players);
-    })
-    
-    io.emit('drawItem',itemArray);
-    if(sameRoom)
-        {
-            setInterval(switchItem,1000000);//Make it random
-            sameRoom=false
-        }
-    //   socket.on('print',()=>{
-    //     console.log('calling server print',players)
-    // })
-  
-    
-    socket.on('moveRight',(obj)=>{
-        io.emit('moveByID',socket.id);
-    })
-     socket.on('updatePos',pos=>{
-        players[socket.id].x=pos.x;
-        players[socket.id].y=pos.y;
-    })
-    socket.on('move',(obj)=>{
-        switch(obj){
-            case 'right':
-                io.emit('moveByID_right',socket.id);
-                break;
-            case 'left':
-                io.emit('moveByID_left',socket.id);
-                break;
-            case 'up':
-                io.emit('moveByID_up',socket.id);
-                break;
-            case 'front':
-                io.emit('moveByID_front',socket.id);
-                break;
-        }
-        
-    })
-    
-    socket.on('stop',(obj)=>{
-        io.emit('stopByID',socket.id);
-    }) 
-    socket.on('start_progress',index=>{
-        io.emit('receive_progress',index);
-    })
-    // socket.emit('update_barrier',id)
-    socket.on('update_barrier',state=>{
-        // console.log(state)
-        io.emit('updateBarriers',state);
-    })
-    //{socket:socket,finish:item.item.type})
-    socket.on('uppdateDoneList',info=>{
-        if(socket.id===info.id){
-        // console.log(socket.id)
-        // console.log( 'old listttt',players[socket.id].doneList)
-        let copy = info.list
-        players[info.id].doneList=copy;
-        console.log('now ',info.id,' is calling')
-        console.log( ' with the list',players[info.id].doneList)
-        // console.log( 'new listttt',players[socket.id].doneList)
-        // console.log("player is",players)
-        // io.emit('updatePlayers',players);
-        // copy=players[socket.id].doneList
-        // io.emit('updateDoneList',{id:socket.id, list:copy});
-        console.log('update player is',players)
-        io.emit('updatePlayers',players);}
-    })
-
-    socket.on('handInTask',(id)=>{
-        let list = players[id].doneList;
-        console.log(id,'is submitting')
-        console.log('submit list is',list)
-        for(let i=0;i<tasks.length;++i){
-            // console.log(tasks[i])
-            let flg=true;
-            for(let j=0;j<tasks[i].subtasks.length;++j){
-                if(list[tasks[i].subtasks[j]]===0)
-                    flg=false
-            }
-            if(flg){
-                console.log('can')
-               
-                for(let j=0;j<tasks[i].subtasks.length;++j){
-                    players[id].doneList[tasks[i].subtasks[j]]--
+        io.emit('displayTask',tasks);//to be implement as same room
+        if(temp){
+            setInterval(()=>{
+                tasks.forEach(t=>{
+                    t.duration--;
+                    if(t.duration===0){
+                        t.subtasks=generateRandomSubtasks();
+                        t.duration=200;
                        
-                }
-                tasks[i].subtasks=generateRandomSubtasks();
-                // console.log(tasks[i])
-                // console.log(tasks)
-                // io.emit('updateDoneList',{id:socket.id, list:list});
-                io.emit('updatePlayers',players);
-                
-
-
-            }
+                    }
+                });
+                io.emit('displayTask',tasks);//to be implement as same room
+                // console.log(tasks[0].duration)
+            },1000)
+            temp=false;
         }
-    })
-   
-    socket.on('submit-score', ({ name, score}) => {
+    
+        socket.on('finish_subTask',subTask=>{
+
+
+            for(let i=0;i<tasks.length;++i){
+                let task=tasks[i];
+                var indexToRemove = task.subtasks.indexOf(subTask);
+                if (indexToRemove !== -1) {
+                    // Remove the element
+                    // console.log("old task",tasks)
+                    task.subtasks.splice(indexToRemove, 1);
+                    
+                    if(task.subtasks.length===0){//finish one big task
+                        task.subtasks=generateRandomSubtasks();
+                    }
+                    // console.log("now task",tasks)
+                    io.emit('displayTask',tasks);//to be implement as same room
+                    break;
+            }
+        }})
+
+        socket.emit('getID',socket.id);
+    
+        let initX = 600, initY=455;
+        players[socket.id] = {x:initX , y :initY , inGame:false,doneList:{
+         A:0,B:0,C:0,D:0//...
+        }};
+
+        // console.log('construct player is',players)
+        // console.log(socket.id + " is connected my server");
+        io.emit('updatePlayers',players);
+    
+        socket.on('disconnect',(reason)=>{
+            console.log(reason);
+            delete players[socket.id];
+            io.emit('updatePlayers',players);
+        })
+        
+        io.emit('drawItem',itemArray);
+        if(sameRoom)
+            {
+                setInterval(switchItem,1000000);//Make it random
+                sameRoom=false
+            }
+        //   socket.on('print',()=>{
+        //     console.log('calling server print',players)
+        // })
+      
+        
+        socket.on('moveRight',(obj)=>{
+            io.emit('moveByID',socket.id);
+        })
+         socket.on('updatePos',pos=>{
+            players[socket.id].x=pos.x;
+            players[socket.id].y=pos.y;
+        })
+        socket.on('move',(obj)=>{
+            switch(obj){
+                case 'right':
+                    io.emit('moveByID_right',socket.id);
+                    break;
+                case 'left':
+                    io.emit('moveByID_left',socket.id);
+                    break;
+                case 'up':
+                    io.emit('moveByID_up',socket.id);
+                    break;
+                case 'front':
+                    io.emit('moveByID_front',socket.id);
+                    break;
+            }
+            
+        })
+        
+        socket.on('stop',(obj)=>{
+            io.emit('stopByID',socket.id);
+        }) 
+        socket.on('start_progress',index=>{
+            io.emit('receive_progress',index);
+        })
+        // socket.emit('update_barrier',id)
+        socket.on('update_barrier',state=>{
+            // console.log(state)
+            io.emit('updateBarriers',state);
+        })
+        socket.on('uppdateDoneList',info=>{
+            if(socket.id===info.id){
+            let copy = info.list
+            players[info.id].doneList=copy;
+            console.log('now ',info.id,' is calling')
+            console.log( ' with the list',players[info.id].doneList)
+            console.log('update player is',players)
+            io.emit('updatePlayers',players);}
+        })
+        socket.on('handInTask',(id)=>{
+            let list = players[id].doneList;
+            console.log(id,'is submitting')
+            console.log('submit list is',list)
+            for(let i=0;i<tasks.length;++i){
+    
+                let flg=true;
+                for(let j=0;j<tasks[i].subtasks.length;++j){
+                    if(list[tasks[i].subtasks[j]]===0)
+                        flg=false
+                }
+                if(flg){
+                    console.log('can')
+                   
+                    for(let j=0;j<tasks[i].subtasks.length;++j){
+                        players[id].doneList[tasks[i].subtasks[j]]--
+                           
+                    }
+                    tasks[i].subtasks=generateRandomSubtasks();
+                    tasks[i].duration=200
+                    io.emit('updatePlayers',players);
+                    
+    
+    
+                }
+            }
+        })
+
+
+        socket.on('submit-score', ({ name, score}) => {
             console.log('In Submit score for player: ', name, ' with score: ', score, ' and socketId: ', socket.id);
             // 1. Create a new player object
             const player = {
@@ -482,3 +487,4 @@ io.on('connection',(socket)=>{
 
 
 httpServer.listen(8000);
+
