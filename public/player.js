@@ -1,11 +1,19 @@
-const Player=function(socket,ctx,src,width,height,x,y,rate,speedTiming,stage,wall){
-    let doneList={
-        A:0,
-        B:0,
-        C:0,
-        D:0,
-        //...
+const Player=function(socket,id,ctx,src,width,height,x,y,rate,speedTiming,stage,wall,list){
+
+    // let socket;
+    // function setSocket(s){
+    //     socket=s
+    // }
+
+
+  let doneList = list
+    function setdoneList(d){
+        doneList['A']=d['A']
+        doneList['B']=d['B']
+        doneList['C']=d['C']
+        doneList['D']=d['D']
     }
+  
     let speed=1;
     let movingIntival;
     function setPlayerIntival(intival){
@@ -35,9 +43,16 @@ const Player=function(socket,ctx,src,width,height,x,y,rate,speedTiming,stage,wal
         stage,
         sequence
     );
+   
 
-    function showHalfPlayer(){
-        
+    function updateList(idd,type,newValue){
+       
+           
+        doneList[type]++
+        console.log('doneList is',doneList)
+        let copy = doneList
+        socket.emit('uppdateDoneList',{id:id,  list:copy});
+    
     }
 let IsStopping=true;
     function moveRight(){
@@ -96,6 +111,8 @@ let IsStopping=true;
         }
      }
     function moveUp(){
+        // if(id=== socket.id){ 
+        // console.log('player', socket.id, 'is moving')
         if(stage!='movingUp'
         // &&!IsStopping
         ){
@@ -113,13 +130,22 @@ let IsStopping=true;
             player.setY(y);
         }
         else{
+            console.log('player', socket.id, 'is stopping')
             socket.emit('stop');
+            // socket.emit('handInTask')
+            submit(id);
+            console.log('submit now')
             clearInterval(movingIntival)
             IsStopping=true
            
 
-        }
+        // }
+    }
      }
+
+    function submit(id){
+            socket.emit('handInTask',id)
+    }
 
      function moveFront(){
         if(stage!='movingFront'
@@ -138,6 +164,7 @@ let IsStopping=true;
             player.setY(y);
         }
         else{
+           
             socket.emit('stop');
             clearInterval(movingIntival)
             IsStopping=true
@@ -182,6 +209,9 @@ let IsStopping=true;
 
    
 
+    
+   
+
     return{
         moveRight:moveRight,
         moveLeft:moveLeft,
@@ -197,8 +227,14 @@ let IsStopping=true;
         getStage,
         getCenterX,
         getCenterY,
-        IsStopping,
+        // setSocket,
         setPlayerIntival,
-        doneList
+        updateList,
+        setdoneList,
+        doneList,
+        id
+        // socket
+        
+   
     };
 }

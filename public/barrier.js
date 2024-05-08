@@ -3,6 +3,10 @@ const Barrier=(x,y,width,height,players,socket,progressDuration,id,type,item)=>{
 //    function setItem(i){
 //         item=i;
 //    }
+
+
+
+
    
 
 function Set_stopping_state(stage){
@@ -14,16 +18,21 @@ let barwidth=width;
 let barheight = 5;
 
 let progress=barwidth;
-function startProgress(ctx){
+function startProgress(ctx,socket){
     
         if(progress>=barwidth){
             if(playerInside){//finished
                 if(item)
                { 
-                // console.log(playerInside,"finished",'type',item.item.type)
-                socket.emit('finish_subTask',item.item.type)
-                playerInside.doneList[item.item.type]++;
-                console.log( playerInside.doneList)
+             
+                // socket.emit('finish_subTask',item.item.type)//to be changed
+              
+                // playerInside.doneList[item.item.type]++;
+                console.log(playerInside.doneList)
+                if(playerInside)
+                    playerInside.updateList(playerInside.id,item.item.type,playerInside.doneList[item.item.type]+1)
+          
+                
                 item.show=false;
             }
                 playerInside=null;
@@ -63,7 +72,8 @@ let playerInside=null;
 let progressing=false
 let stopProgres=false;
 let margin = 20;
-function checkPlayer(p){
+function checkPlayer(p,socketid){
+    // console.log('p is',p.id,'!!!')
     if(item && !item.show) return -1;
     let playerX=p.getCenterX();
     let playerY = p.getCenterY()
@@ -78,17 +88,23 @@ function checkPlayer(p){
     ){      
             //one player inside the job area
             if(!playerInside)
-                playerInside=p;
+                {   
+                    playerInside=players[socketid];
+                    console.log('player',playerInside.id,'inside!!!')
+                    console.log('id is',socketid)
+                }
             if(!progressing){
+             
                 progressing=true;
                 stopProgres=false
-                socket.emit('update_barrier',{id:id,progressing:progressing,stopProgres:stopProgres})
+                socket.emit('update_barrier',{id:id,progressing:progressing,stopProgres:stopProgres,player:playerInside})
                 return 0;
             }
            
         }
    else {
-        if(progressing && playerInside==p){
+        if(progressing && playerInside===p){
+            console.log('player',p.id,'out!!!')
             //that player is leaving the job area
             playerInside=null
             progressing=false
@@ -97,12 +113,14 @@ function checkPlayer(p){
             return 1;
     }
 }
+
     return -1;
 }
 
-function update(pro,stop){
+function update(pro,stop,p){
     progressing=pro;
     stopProgres=stop;
+    playerInside=p;
 }
 
 
