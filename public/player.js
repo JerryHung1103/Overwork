@@ -1,9 +1,19 @@
-const Player=function(socket,id,ctx,src,width,height,x,y,rate,speedTiming,stage,wall,list){
+const Player=function(socket,id,ctx,src,width,height,x,y,rate,speedTiming,stage,walls,list){
 
-    // let socket;
-    // function setSocket(s){
-    //     socket=s
-    // }
+    // let walls=[
+    //     {x:700,y:250,width:300,height:100,type:'submission'},
+    //     {x:100,y:100,width:300,height:100,type:'wall'},
+    // ];
+
+
+   function inWall(x,y){
+    for(let i=0;i<walls.length;++i){
+        if(x>walls[i].x && x<walls[i].x +walls[i].width && y>walls[i].y && y<walls[i].y +walls[i].height)
+            return {inWall:true, type:walls[i].type}
+    } 
+    return {inWall:false, type:''}
+   }
+
 
 
   let doneList = list
@@ -62,19 +72,13 @@ let IsStopping=true;
             stage='movingRight';
             player.setStage('movingRight')
         }
-        // x+=speed;
-        // player.setX(x);
-        if( !(getCenterY(y)<=wall.y +wall.height && getCenterY(y)>wall.y&&getCenterX(x)<wall.x)  ){
-            x+=speed;
-            player.setX(x);
-            IsStopping=false
-        }
+   
     
-        else if(getCenterX(x)+speed<wall.x){
-            x+=speed;
-            player.setX(x);
-            IsStopping=false
+        if(!inWall(getCenterX(x)+speed, getCenterY(y)).inWall){
+                x+=speed;
+                player.setX(x);
         }
+       
         else{
           
             // socket.emit('stop','');  
@@ -95,15 +99,12 @@ let IsStopping=true;
         // x-=speed;
         // player.setX(x);
 
-        if( !(getCenterY(y)<=wall.y +wall.height && getCenterY(y)>wall.y &&getCenterX(x)>wall.x+wall.width)  ){
-            x-=speed;
-            player.setX(x);
-        }
+        if(!inWall(getCenterX(x)-speed, getCenterY(y)).inWall){
+           x-=speed;
+        player.setX(x);
+    }
     
-        else if(getCenterX(x)-speed>wall.x+wall.width){
-            x-=speed;
-            player.setX(x);
-        }
+       
         else{
             socket.emit('stop');
             clearInterval(movingIntival)
@@ -119,22 +120,30 @@ let IsStopping=true;
             stage='movingUp';
             player.setStage('movingUp')
         }  
-        if( !(getCenterX(x)<=wall.x +wall.width && getCenterX(x)>wall.x && getCenterY(y)>wall.y)  ){
-            y-=speed;
-            player.setY(y);
-        }
+        // if( !(getCenterX(x)<=wall.x +wall.width && getCenterX(x)>wall.x && getCenterY(y)>wall.y)  ){
+        //     y-=speed;
+        //     player.setY(y);
+        // }
     
-         else if(getCenterY(y)-speed>wall.y+wall.height){
+        //  else if(getCenterY(y)-speed>wall.y+wall.height){
           
-            y-=speed;
-            player.setY(y);
-        }
+        //     y-=speed;
+        //     player.setY(y);
+        // }
+        let flg = inWall(getCenterX(x), getCenterY(y)-speed)
+        if(!flg.inWall){
+                y-=speed;
+                player.setY(y);
+    }
         else{
+            if(flg.type==='submission'){
+                submit(id);
+                console.log('submit now')
+
+            }
             console.log('player', socket.id, 'is stopping')
             socket.emit('stop');
-            // socket.emit('handInTask')
-            submit(id);
-            console.log('submit now')
+           
             clearInterval(movingIntival)
             IsStopping=true
            
@@ -154,15 +163,19 @@ let IsStopping=true;
             stage='movingFront';
             player.setStage('movingFront')
         }
-        if( !(getCenterX(x)<=wall.x +wall.width && getCenterX(x)>wall.x  && getCenterY(y)<wall.y)  ){
-            y+=speed;
-            player.setY(y);
-        }
+        // if( !(getCenterX(x)<=wall.x +wall.width && getCenterX(x)>wall.x  && getCenterY(y)<wall.y)  ){
+        //     y+=speed;
+        //     player.setY(y);
+        // }
     
-        else if(getCenterY(y)+speed<wall.y){
+        // else if(getCenterY(y)+speed<wall.y){
+        //     y+=speed;
+        //     player.setY(y);
+        // }
+        if(!inWall(getCenterX(x), getCenterY(y)+speed).inWall){
             y+=speed;
-            player.setY(y);
-        }
+                player.setY(y);
+    }
         else{
            
             socket.emit('stop');
@@ -238,3 +251,4 @@ let IsStopping=true;
    
     };
 }
+
