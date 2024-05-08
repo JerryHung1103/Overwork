@@ -6,9 +6,8 @@
     body {
       background-image: url('/image/<%= gameState === "win" ? "WinPage.png" : "LosePage.png" %>');
       background-repeat: no-repeat;
-      background-size: 50%;
+      background-size: 75% 100%;
       background-position: center top;
-
       position: relative;
       min-height: 100vh;
       display: flex;
@@ -16,27 +15,65 @@
       justify-content: center;
       margin: 0;
       padding: 0;
+    }
 
+    .leaderboard {
+      position: absolute;
+      top: 37%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .leaderboard p {
+      margin: 2vh;
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+      font-size: 110%;
+      color: red;
+    }
+
+    .total-score {
+      position: absolute;
+      top: <%= gameState === 'win' ? '63%' : '51%' %>;
+      left: <%= gameState === 'win' ? '72%' : '50%' %>; 
+      text-align: center;
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+      font-size: 110%;
+      color: red;
     }
 
     .button-container {
-        margin-top: 500px;
+      position: absolute;
+      top: 80%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
     }
 
     .Quit,
     .Play {
-        padding: 10px 20px;
-        box-sizing: content-box;
+      padding: 1vw 2vh;
+      box-sizing: content-box;
     }
 
-  </style>
+    /* Additional styles for gameState == "lose" */
+    .lose .total-score {
+    top: 10%; /* Change the vertical position of the total text */
+    }
   </style>
 </head>
 <body>
-  <p>Player 1: <%= player1Name %> - Score: <%= player1Score %></p>
-  <p>Player 2: <%= player2Name %> - Score: <%= player2Score %></p>
-  <p>Total Score: <%= totalScore %></p>
-  
+  <div class="leaderboard"> 
+    <p><%= player1Name %> - Score: <%= player1Score %></p>
+    <p><%= player2Name %> - Score: <%= player2Score %></p>
+  </div>
+
+  <div class="total-score">
+    <p><%= totalScore %></p>
+  </div>
+
   <div class="button-container">
     <button class="Quit">Quit game</button>
     <button class="Play">Play again</button>
