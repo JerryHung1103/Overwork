@@ -18,6 +18,9 @@ const ItemHeight = 200/8;
 const teaWidth = 360/4;
 const teaHeight = 120;
  
+const birdWidth = 1280/8;
+const birdHeight = 150;
+
 let playerImg=new Image();
 let itemImg = new Image();
 let backgroundImg = new Image();
@@ -279,7 +282,15 @@ function drawAnimation(now){
     const frameIndex = Math.floor(now / 100) % 4; // Change frame every 100 milliseconds
     const teaframeX = frameIndex * teaWidth;
     ctx.drawImage(teaSteamImg, teaframeX, 0, teaWidth, teaHeight, 250, 320, teaWidth / 3.5, teaHeight / 3.5);    
-    // Draw bird animation
+    
+    // Draw the bird animation
+    const birdFrameIndex = Math.floor(now / 100) % 8; // Change frame every 100 milliseconds
+    const birdFrameX = birdFrameIndex * birdWidth;
+
+    const birdX = canvas.width - (now / 10) % (canvas.width + birdWidth);
+    const birdY = canvas.height / 3 - birdHeight;
+
+    ctx.drawImage(birdImg, birdFrameX, 0, birdWidth, birdHeight, birdX, birdY, birdWidth / 3, birdHeight/ 3);
 
     if(task){
         // ctx.lineWidth = 2; 
