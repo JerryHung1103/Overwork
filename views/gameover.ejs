@@ -63,6 +63,32 @@
     top: 10%; /* Change the vertical position of the total text */
     }
   </style>
+    <script>
+      function fetchGamePage(){
+      fetch('/play')
+        .then(response => {
+          if (response.ok) {
+            window.location.href = '/play';
+          } else {
+            throw new Error('Failed to load play.html');
+          }
+        })
+    }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        var quitButton = document.querySelector('.Quit');
+        var playButton = document.querySelector('.Play');
+  
+        quitButton.addEventListener('click', function() {
+          window.location.href = 'index.html'; 
+        });
+  
+        playButton.addEventListener('click', function() {
+          fetchGamePage(); 
+        });
+      });
+      
+    </script>
 </head>
 <body>
   <div class="leaderboard"> 

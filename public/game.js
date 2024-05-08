@@ -108,15 +108,16 @@ function fetchGameOverPage(){
     })
     .then(html => {
         // Switch to gameover page
+        window.location.href = "/gameover";
         document.body.innerHTML = html;
     })
 }
 
 
 // //For testing 
-socket.on('connect', ()=>{
-    submitScore(playerName, score);
-})
+// socket.on('connect', ()=>{
+//     submitScore(playerName, score);
+// })
 
 socket.on('game-is-over', () => {
     fetchGameOverPage();
