@@ -75,6 +75,11 @@ function submitScore(name, score) {
 
 // Gameover page is here for testing right now
 function fetchGameOverPage(){
+    // Pause the audios
+    console.log("pausing audio");
+    audio.pause();
+    audio.src = '';
+
     fetch('/gameover')
     .then(response => {
         if (response.ok) {
@@ -84,12 +89,13 @@ function fetchGameOverPage(){
         }
     })
     .then(html => {
+        // Switch to gameover page
         document.body.innerHTML = html;
     })
 }
 
 
-// For testing 
+// //For testing 
 // socket.on('connect', ()=>{
 //     submitScore(playerName, score);
 // })
