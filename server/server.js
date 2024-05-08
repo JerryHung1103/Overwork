@@ -238,7 +238,6 @@ const itemArray=[
     
 ]
 
-
 var tasks = [
     {  subtasks: generateRandomSubtasks() , duration :20},
     {  subtasks: generateRandomSubtasks() , duration :20},
@@ -275,12 +274,11 @@ function switchItem(){
     })
 }
 
-
 io.on('connection',(socket)=>{
     // console.log('Connection from:', socket.handshake.headers.referer);
     if (socket.handshake.headers.referer.endsWith('play')) {
         // console.log('Connection established from the game.html page');
-        io.emit('displayTask',tasks);//to be implement as same room
+        io.emit('displayTask',tasks); //to be implement as same room
         if(temp){
             setInterval(()=>{
                 tasks.forEach(t=>{
@@ -298,8 +296,6 @@ io.on('connection',(socket)=>{
         }
     
         socket.on('finish_subTask',subTask=>{
-
-
             for(let i=0;i<tasks.length;++i){
                 let task=tasks[i];
                 var indexToRemove = task.subtasks.indexOf(subTask);
@@ -321,7 +317,7 @@ io.on('connection',(socket)=>{
     
         let initX = 600, initY=455;
         players[socket.id] = {x:initX , y :initY , inGame:false,doneList:{
-         A:0,B:0,C:0,D:0//...
+         A:0,B:0,C:0,D:0 //...
         }};
 
         // console.log('construct player is',players)
@@ -348,7 +344,7 @@ io.on('connection',(socket)=>{
         socket.on('moveRight',(obj)=>{
             io.emit('moveByID',socket.id);
         })
-         socket.on('updatePos',pos=>{
+        socket.on('updatePos',pos=>{
             players[socket.id].x=pos.x;
             players[socket.id].y=pos.y;
         })
@@ -417,7 +413,6 @@ io.on('connection',(socket)=>{
                 }
             }
         })
-
 
         socket.on('submit-score', ({ name, score}) => {
             console.log('In Submit score for player: ', name, ' with score: ', score, ' and socketId: ', socket.id);

@@ -35,6 +35,10 @@ let JobArea = new Image();
 
 // Play BGM
 const audio = new Audio('audio/bgm.mp3');
+const bookSFX = new Audio('audio/book.mp3');
+const keyboardSFX = new Audio('audio/keyboard.mp3');
+const printerSFX = new Audio('audio/printer.mp3');
+const writingSFX = new Audio('audio/writing.mp3');
 audio.volume = 0.5; // Adjust the volume value as desired (between 0.0 and 1.0)
 
 audio.addEventListener('canplaythrough', () => {
@@ -71,7 +75,7 @@ let browserID;
 // Scoring: Things to pass back to the server when game ends
 const playerName = sessionStorage.getItem('playerName');
 console.log(playerName); 
-let score = 100;
+let score = 0;
 
 function submitScore(name, score) {
     const data = { name, score};
@@ -409,15 +413,39 @@ function drawAnimation(now){
         ctx.fillStyle = 'black';
         if(barriers){
             barriers.forEach((barrier,index)=>{
-                if(barrier.checkPlayer(players[id],id)!=-1 ){//and index is currentlu active
+                let interactionState = barrier.checkPlayer(players[id],id);
+                console.log('interaction state is',interactionState);
+                if(interactionState == 0 ){//and index is currently active
                     barriers[index].startCountDown()//check if players are entering the job area
+                    // Play task music
+                    if (index % 4 == 0) {
+                        bookSFX.loop = true; 
+                        bookSFX.play();
+                    } else if (index % 4 == 1) {
+                        keyboardSFX.loop = true;
+                        keyboardSFX.play();
+                    } else if (index % 4 == 2) {
+                        printerSFX.loop = true;
+                        printerSFX.play();
+                    } else if (index % 4 == 3) {
+                        writingSFX.loop = true;
+                        writingSFX.play();
+                    }
+    
                 } 
+                // Stop the task music when the player leaves the task area
+                else if (interactionState == 1) {
+                    bookSFX.pause();
+                    keyboardSFX.pause();
+                    printerSFX.pause();
+                    writingSFX.pause();
+                }
+                
             })
         }
     }
     requestAnimationFrame(drawAnimation);
 }
-
 
 // document.addEventListener('keydown',event=>{
 //     let keycode=event.keyCode;
@@ -436,6 +464,7 @@ function drawAnimation(now){
 //             break;
 //     }
 // });
+
 socket.on('moveByID_right',id=>{
     players[id].moveRight();
     socket.emit('updatePos',{x:players[id].getCenterX(), y:players[id].getCenterY()})
