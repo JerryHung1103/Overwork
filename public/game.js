@@ -8,8 +8,10 @@ let cvw=1600;
 let cvh=700;
 canvas.width=1600;
 canvas.height=700;
-const playerWidth=240/10;
-const playerHeight = 200/8;
+// const playerWidth=240/10;
+// const playerHeight = 200/8;
+const playerWidth=576/9;
+const playerHeight = 256/4;
 
 const ItemWidth=240/10;
 const ItemHeight = 200/8;
@@ -44,6 +46,16 @@ backgroundImg.onload=()=>{
 
 const players = {}
 let browserID;
+// Create a mapping object to store socket ID to socket object mappings
+const socketMap = {};
+socket.on('getID',id=>{
+    browserID=id
+});
+
+// socket.on('update_socketMap',newMap=>{
+//     Object.assign(socketMap, newMap);
+//     console.log(socketMap);
+// })
 
 // Scoring: Things to pass back to the server when game ends
 const playerName = sessionStorage.getItem('playerName');
@@ -89,20 +101,47 @@ socket.on('game-is-over', () => {
     fetchGameOverPage();
 })
 
-socket.on('getID',id=>browserID=id);
 socket.on('updatePlayers',(backend_players)=>{
     for(const id in backend_players){
         const pos = backend_players[id];
         if(!players[id]){
-            players[id]=Player(socket,ctx,playerImg,playerWidth,playerHeight,pos.x,pos.y,2,50, 'stayFront',
-            {x:700,y:250,width:300,height:100})
+            players[id]=Player(socket,id,ctx,playerImg,playerWidth,playerHeight,pos.x,pos.y,2,50, 'stayFront',
+            {x:700,y:250,width:300,height:100},pos.doneList)
+            // if(id===browserID) players[id].setSocket(socket)
+            // console.log(pos.doneList)
+        } 
+        else{
+            players[id].setdoneList(pos.doneList)
         }
+     
     }
+
+    // for(const id in players){
+    //     console.log(players[id].doneList)
+    // }
+
     for(const id in players){
         if(!backend_players[id]){
             delete players[id];
         }
     }
+
+    console.log('after updating', players)
+    
+})
+
+// io.emit('updateDoneList',{id:socket.id, list:list});
+
+socket.on('updateDoneList',info=>{
+   
+    console.log(info.list)
+    console.log(players)
+    console.log('=======================')
+     players[info.id].setdoneList(info.list)
+     
+     console.log(players[info.id].doneList)
+     console.log('=======================')
+     console.log(players)
 })
 
 let itemImageMap={
@@ -119,13 +158,13 @@ socket.on('drawItem',backendItemArray=>{
             show:backendItem.show
         }))
         barriers = [
-
+ 
             Barrier(235,565,100,65,players,socket,0.5,0,'jobArea',item1[0]),
             Barrier(600,565,100,65,players,socket,.5,1,'jobArea',item1[1]),
             Barrier(960,565,100,65,players,socket,.5,2,'jobArea',item1[2]),
             Barrier(1320,565,100,65,players,socket,.5,3,'jobArea',item1[3]),
             //initx intiy width height playerList socket(optional actually   is not needed), bar rate, id, type
-        
+                 
         ];
    
 })
@@ -134,6 +173,24 @@ socket.on('change_state_to',show=>{
     item1.forEach(i=>i.show=show)
     // showItem1=show;
 });
+
+// Duplicated? Also spelling mistake
+socket.on('uppdateDoneList_',info=>{
+    // console.log('id is',info.id)
+    // console.log('new list is',info.list)
+    // if(players[info.id]) 
+    //     players[info.id].doneList=info.list;
+    // console.log("player is",players)
+})
+
+// barriers = [
+
+//     Barrier(235,565,100,65,players,socket,1,0,'jobArea'),
+//     Barrier(600,565,100,65,players,socket,1,1,'jobArea'),
+//     Barrier(960,565,100,65,players,socket,1,1,'jobArea'),
+//     Barrier(1320,565,100,65,players,socket,1,1,'jobArea'),
+   
+// ];
 
 const subtaskWidth=50;
 const subtaskHeight=50;
@@ -218,7 +275,7 @@ function drawAnimation(now){
             )//Drawing the jobTable
     if(barriers){
         barriers.filter(b=>b.type !='wall')
-                .forEach(barrier=>barrier.startProgress(ctx))
+            .forEach(barrier=>barrier.startProgress(ctx,socket))
         ctx.fillStyle = "#4caf50";
         ctx.lineWidth = 2; // Set the line width of the rectangle outline
         barriers.forEach(barrier=>ctx.strokeRect(barrier.x-barrier.margin,barrier.y-barrier.margin,barrier.width+2*barrier.margin,barrier.height+2*barrier.margin))
@@ -245,6 +302,7 @@ function drawAnimation(now){
     // }
        
     for(const id in players){
+        // console.log(id)
         players[id].update(now);
         players[id].draw();
         ctx.fillStyle = 'red';
@@ -258,7 +316,7 @@ function drawAnimation(now){
         ctx.fillStyle = 'black';
         if(barriers){
             barriers.forEach((barrier,index)=>{
-                if(barrier.checkPlayer(players[id])!=-1 ){//and index is currentlu active
+                if(barrier.checkPlayer(players[id],id)!= -1){//and index is currentlu active
                     barriers[index].startCountDown()//check if players are entering the job area
                 } 
             })
@@ -293,7 +351,8 @@ socket.on('moveByID_left',id=>{
     players[id].moveLeft();
 })
 socket.on('moveByID_up',id=>{
-    players[id].moveUp();
+    // console.log(id,'is moving up')
+    players[id].moveUp(id);
 })
 socket.on('moveByID_front',id=>{
     players[id].moveFront();
