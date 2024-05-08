@@ -169,6 +169,20 @@ app.post("/join-room", (req, res) => {
     res.json({ roomId });
 });
 
+app.get('/remove-room', (req, res) => {
+    const { roomId } = req.query;
+    
+    // Check if the room exists
+    if (rooms[roomId]) {
+      delete rooms[roomId];
+      // Broadcast the updated list of available rooms to other players
+      broadcastAvailableRooms();
+      res.sendStatus(200);
+    } else {
+      res.sendStatus(404);
+    }
+  });
+  
 // For game.html
 let sameRoom=true;
 let temp=true;
