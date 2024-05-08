@@ -23,10 +23,18 @@ let JobArea = new Image();
 //height is 44
 //gap is 3, first one is 2
 //gap height is 2
-
-
 //first item is 2.2 and 10,10
 
+// Play BGM
+const audio = new Audio('audio/bgm.mp3');
+audio.volume = 0.5; // Adjust the volume value as desired (between 0.0 and 1.0)
+
+audio.addEventListener('canplaythrough', () => {
+  audio.play();
+});
+
+
+// Load the image sprites
 backgroundImg.src = '/image/background.png';
 backgroundImg.onload=()=>{
     // Draw background img covering the whole canvas
