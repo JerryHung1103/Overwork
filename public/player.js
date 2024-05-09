@@ -6,6 +6,21 @@ const Player=function(socket,id,ctx,src,width,height,x,y,rate,speedTiming,stage,
     // ];
 
 
+   
+    const workingState={
+        isWorking:false,
+        table:null
+    }
+    function setWorkingState(w){
+        workingState.isWorking=w.isWorking;
+        workingState.table=w.id;
+    }
+
+    function getWorkingState(){
+        return workingState
+    }
+
+
    function inWall(x,y){
     for(let i=0;i<walls.length;++i){
         if(x>walls[i].x && x<walls[i].x +walls[i].width && y>walls[i].y && y<walls[i].y +walls[i].height)
@@ -258,7 +273,9 @@ let IsStopping=true;
         id,
         name,
         getScore,
-        setScore
+        setScore,
+        setWorkingState,
+        getWorkingState
         // socket
         
    
