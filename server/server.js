@@ -23,6 +23,10 @@ const rooms = {};
 const playersInLobby = {};
 let gameoverStatus;
 
+// For gameover page
+let clientsWaitingToRestart = [];
+
+
 
 function getAvailableRooms() {
     const availableRooms = [];
@@ -473,6 +477,24 @@ io.on('connection',(socket)=>{
                 playerScoreArray = [];
             }
         });
+
+    } else if (socket.handshake.headers.referer.endsWith('gameover')){
+        socket.on('quit-request', ({ player: playerName }) => {
+            // Make the players quit
+            io.emit('quitting');
+        })
+
+        socket.on("play-again" , ({ player: playerName }) => {
+            // Make the players play again
+            clientsWaitingToRestart.push(socket.id);
+
+            if (clientsWaitingToRestart.length == 2){
+                io.emit('restart-game');
+
+                clientsWaitingToRestart = [];
+            }
+
+        })
 
     } else{
         // console.log('Connection established from the index.html page');
