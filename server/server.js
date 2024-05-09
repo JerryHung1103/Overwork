@@ -341,7 +341,7 @@ io.on('connection',(socket)=>{
                     clearInterval(countdownInterval)
                     temp=true
                     console.log('end game')
-                    // io.emit('GameOver',players);
+                    io.emit('GameOver',players);
                 }
                 else{
                     io.emit('countdown', gameDuration);
