@@ -436,6 +436,7 @@ function drawAnimation(now){
                 } 
                 // Stop the task music when the player leaves the task area
                 else if (interactionState == 1) {
+                    console.log("Leaving task area");
                     bookSFX.pause();
                     keyboardSFX.pause();
                     printerSFX.pause();
