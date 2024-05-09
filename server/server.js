@@ -14,7 +14,6 @@ const io = new Server(httpServer);
 const fs = require('fs');
 
 const path = require('path');
-
 const { clearInterval } = require('timers');
 
 const players = {};
@@ -24,10 +23,6 @@ let playerScoreArray=[];
 const rooms = {};
 const playersInLobby = {};
 let gameoverStatus;
-
-// For gameover page
-let clientsWaitingToRestart = [];
-
 
 
 function getAvailableRooms() {
@@ -244,6 +239,7 @@ const itemArray=[
     
 ]
 
+
 const TaskScore={
     'A':100,
     'B':100,
@@ -262,7 +258,6 @@ for(let i=0;i<3;++i){
     let task =  generateRandomSubtasks();
     tasks.push( {  subtasks: task.subtasks , duration :200, score:task.score})
 }
-
 //return sub set of task
 function generateRandomSubtasks() {
     var subtasks = [];
@@ -297,13 +292,17 @@ function switchItem(){
     })
 }
 
+
+
 // function displayScore(){
 //     io.emit('displayScore',players)
 // }
 let gameDuration;
 let taskIntival;
 io.on('connection',(socket)=>{
-    // console.log('Connection from:', socket.handshake.headers.referer);
+
+    
+
 
     let countdownInterval;
     if (socket.handshake.headers.referer.endsWith('play')) {
@@ -341,7 +340,7 @@ io.on('connection',(socket)=>{
                     clearInterval(countdownInterval)
                     temp=true
                     console.log('end game')
-                    io.emit('GameOver',players);
+                    // io.emit('GameOver',players);
                 }
                 else{
                     io.emit('countdown', gameDuration);
@@ -351,7 +350,9 @@ io.on('connection',(socket)=>{
             temp=false;
 
         }
-    
+        socket.on('cheatMode',index=>{
+            io.emit('cheatMode',index)
+        });
         socket.on('finish_subTask',subTask=>{
             for(let i=0;i<tasks.length;++i){
                 let task=tasks[i];
@@ -417,16 +418,20 @@ io.on('connection',(socket)=>{
         })
         
         io.emit('drawItem',itemArray);
-        if(sameRoom)
-            {
-                setInterval(switchItem,1000000);//Make it random
-                sameRoom=false
-            }
+        // if(sameRoom)
+        //     {
+        //         setInterval(switchItem,1000000);//Make it random
+        //         sameRoom=false
+        //     }
         //   socket.on('print',()=>{
         //     console.log('calling server print',players)
         // })
-      
-        
+        socket.on('resumeSpeed',()=>{
+            io.emit('resumeSpeed')
+        })
+        socket.on('hideTask',id=>{
+            io.emit('HideTask',id);
+        })
         socket.on('moveRight',(obj)=>{
             io.emit('moveByID',socket.id);
         })
@@ -518,7 +523,6 @@ io.on('connection',(socket)=>{
             }
         })
 
-
         socket.on('submit-score', ({ name, score}) => {
             console.log('In Submit score for player: ', name, ' with score: ', score, ' and socketId: ', socket.id);
             // 1. Create a new player object
@@ -562,13 +566,9 @@ io.on('connection',(socket)=>{
                 });    
             
                 // 4. Determine if they players have won or lost
-                // Total score needs to be >= 400. Each player needs to be >= 200
-                let gameState;
-                if (totalScore >= 400 & player1Score >= 200 & player2Score >= 200) {
-                    gameState = 'win';
-                } else{
-                    gameState = 'lose';
-                }
+                // Assume always win for now for testing
+                const gameState = 'win';
+            
                 // 5. Store the gameover status
                 gameoverStatus = {player1Name, player1Score, player2Name, player2Score, totalScore, gameState};
         
@@ -583,30 +583,12 @@ io.on('connection',(socket)=>{
             }
         });
 
-    } else if (socket.handshake.headers.referer.endsWith('gameover')){
-        socket.on('quit-request', ({ player: playerName }) => {
-            // Make the players quit
-            io.emit('quitting');
-        })
-
-        socket.on("play-again" , ({ player: playerName }) => {
-            // Make the players play again
-            clientsWaitingToRestart.push(socket.id);
-
-            if (clientsWaitingToRestart.length == 2){
-                io.emit('restart-game');
-
-                clientsWaitingToRestart = [];
-            }
-
-        })
-
     } else{
         // console.log('Connection established from the index.html page');
     }
 
 })
 
-
 httpServer.listen(8000);
+
 
