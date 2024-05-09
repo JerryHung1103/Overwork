@@ -2,6 +2,7 @@
 <html>
 <head>
   <title><%= gameState %></title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.1/socket.io.js"></script>
   <style>
     body {
       background-image: url('/image/<%= gameState === "win" ? "WinPage.png" : "LosePage.png" %>');
@@ -63,32 +64,52 @@
     top: 10%; /* Change the vertical position of the total text */
     }
   </style>
-    <script>
-      function fetchGamePage(){
-      fetch('/play')
-        .then(response => {
-          if (response.ok) {
-            window.location.href = '/play';
-          } else {
-            throw new Error('Failed to load play.html');
-          }
-        })
-    }
+<script>
+  const playerName = sessionStorage.getItem('playerName');
+  console.log(playerName);
+  const socket = io();
 
-      document.addEventListener('DOMContentLoaded', function() {
-        var quitButton = document.querySelector('.Quit');
-        var playButton = document.querySelector('.Play');
-  
-        quitButton.addEventListener('click', function() {
-          window.location.href = 'index.html'; 
-        });
-  
-        playButton.addEventListener('click', function() {
-          fetchGamePage(); 
-        });
-      });
-      
-    </script>
+  function sendQuitRequest() {
+    socket.emit('quit-request', { player: playerName });
+  }
+
+  function sendPlayAgainRequest(){
+    socket.emit('play-again', { player: playerName });
+  }
+
+  socket.on('quitting', () => {
+    window.location.href = 'index.html'; 
+  });
+
+  socket.on('restart-game', () => {
+    console.log("Restarting game");
+    fetchGamePage();
+  });
+
+  function fetchGamePage(){
+    fetch('/play')
+      .then(response => {
+        if (response.ok) {
+          window.location.href = '/play';
+        } else {
+          throw new Error('Failed to load play.html');
+        }
+      })
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var quitButton = document.querySelector('.Quit');
+    var playButton = document.querySelector('.Play');
+
+    quitButton.addEventListener('click', function() {
+      sendQuitRequest();
+    });
+
+    playButton.addEventListener('click', function() {
+      sendPlayAgainRequest();
+    });
+  });
+</script>
 </head>
 <body>
   <div class="leaderboard"> 
