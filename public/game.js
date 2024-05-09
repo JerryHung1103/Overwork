@@ -115,9 +115,9 @@ function fetchGameOverPage(){
 
 
 //For testing 
-socket.on('connect', ()=>{
-    submitScore(playerName, score);
-})
+// socket.on('connect', ()=>{
+//     submitScore(playerName, score);
+// })
 
 socket.on('game-is-over', () => {
     fetchGameOverPage();
