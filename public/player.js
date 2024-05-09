@@ -6,6 +6,14 @@ const Player=function(socket,id,ctx,src,width,height,x,y,rate,speedTiming,stage,
     // ];
 
 
+    function setName(n){
+        name=n
+    }
+
+    function getName(){
+        return name
+    }
+
    
     const workingState={
         isWorking:false,
@@ -275,10 +283,14 @@ let IsStopping=true;
         getScore,
         setScore,
         setWorkingState,
-        getWorkingState
+        getWorkingState,
+        setName,
+        getName
         // socket
         
    
     };
 }
+
+
 
