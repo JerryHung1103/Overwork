@@ -247,15 +247,15 @@ socket.on('drawItem',backendItemArray=>{
 
           
             Barrier(210,580,70,65,players,socket,0.5,0,'jobArea',item1[0],bookSFX),
-            Barrier(210+360,580,70,65,players,socket,.5,1,'jobArea',item1[1],bookSFX),
-            Barrier(210+360*2,580,70,65,players,socket,.5,2,'jobArea',item1[2],bookSFX),
-            Barrier(210+360*3,580,70,65,players,socket,.5,3,'jobArea',item1[3],bookSFX),
+            Barrier(210+360,580,70,65,players,socket,.5,1,'jobArea',item1[1],writingSFX),
+            Barrier(210+360*2,580,70,65,players,socket,.5,2,'jobArea',item1[2],printerSFX),
+            Barrier(210+360*3,580,70,65,players,socket,.5,3,'jobArea',item1[3],keyboardSFX),
             //initx intiy width height playerList socket(optional actually   is not needed), bar rate, id, type
           
             Barrier(420,380,70,65,players,socket,0.5,4,'jobArea',item1[4],bookSFX),
-            Barrier(420+360,380,70,65,players,socket,.5,5,'jobArea',item1[5],bookSFX),
-            Barrier(420+360*2,380,70,65,players,socket,.5,6,'jobArea',item1[6],bookSFX),
-            Barrier(420+360*3,380,70,65,players,socket,.5,7,'jobArea',item1[7],bookSFX),
+            Barrier(420+360,380,70,65,players,socket,.5,5,'jobArea',item1[5],writingSFX),
+            Barrier(420+360*2,380,70,65,players,socket,.5,6,'jobArea',item1[6],printerSFX),
+            Barrier(420+360*3,380,70,65,players,socket,.5,7,'jobArea',item1[7],keyboardSFX),
         
         
         ];
