@@ -15,6 +15,8 @@ const fs = require('fs');
 
 const path = require('path');
 
+const { clearInterval } = require('timers');
+
 const players = {};
 let playerScoreArray=[];
 
@@ -242,11 +244,24 @@ const itemArray=[
     
 ]
 
-var tasks = [
-    {  subtasks: generateRandomSubtasks() , duration :20},
-    {  subtasks: generateRandomSubtasks() , duration :20},
-    {  subtasks: generateRandomSubtasks() , duration :20}
-];
+const TaskScore={
+    'A':100,
+    'B':100,
+    'C':100,
+    'D':100,
+}
+
+
+// var tasks = [
+//     {  subtasks: generateRandomSubtasks().subtasks , duration :200, score:generateRandomSubtasks().score},
+//     {  subtasks: generateRandomSubtasks().subtasks , duration :200, score:generateRandomSubtasks().score},
+//     {  subtasks: generateRandomSubtasks().subtasks , duration :200, score:generateRandomSubtasks().score}
+// ];
+let tasks = [];
+for(let i=0;i<3;++i){
+    let task =  generateRandomSubtasks();
+    tasks.push( {  subtasks: task.subtasks , duration :200, score:task.score})
+}
 
 //return sub set of task
 function generateRandomSubtasks() {
@@ -260,8 +275,12 @@ function generateRandomSubtasks() {
         subtasks.push(possibleSubtasks[index]);
         possibleSubtasks.splice(index, 1);
     }
+    let score=0;
+    subtasks.forEach(t=>{
+        score+=TaskScore[t];
+    })
 
-    return subtasks;
+    return {subtasks:subtasks , score:score};
 }
 
 function switchItem(){
@@ -278,17 +297,35 @@ function switchItem(){
     })
 }
 
+// function displayScore(){
+//     io.emit('displayScore',players)
+// }
+let gameDuration;
+let taskIntival;
 io.on('connection',(socket)=>{
     // console.log('Connection from:', socket.handshake.headers.referer);
+
+    let countdownInterval;
     if (socket.handshake.headers.referer.endsWith('play')) {
         // console.log('Connection established from the game.html page');
         io.emit('displayTask',tasks); //to be implement as same room
         if(temp){
-            setInterval(()=>{
+            gameDuration=120//to be changed
+            taskIntival= setInterval(()=>{
                 tasks.forEach(t=>{
                     t.duration--;
                     if(t.duration===0){
-                        t.subtasks=generateRandomSubtasks();
+                        // t.subtasks=generateRandomSubtasks();
+                        // t.duration=200;
+                        //player miss it!!!
+                       for(const id in players){
+                        players[id].score-=(t.score)/2
+                       }
+
+
+                        let tsk = generateRandomSubtasks();
+                        t.subtasks=tsk.subtasks;
+                        t.score = tsk.score;
                         t.duration=200;
                        
                     }
@@ -296,7 +333,23 @@ io.on('connection',(socket)=>{
                 io.emit('displayTask',tasks);//to be implement as same room
                 // console.log(tasks[0].duration)
             },1000)
+           
+
+            countdownInterval=setInterval(() => {
+                gameDuration--;
+                if(gameDuration<0){
+                    clearInterval(countdownInterval)
+                    temp=true
+                    console.log('end game')
+                    // io.emit('GameOver',players);
+                }
+                else{
+                    io.emit('countdown', gameDuration);
+                    io.emit('updatePlayers',players); 
+                }
+            },1000)
             temp=false;
+
         }
     
         socket.on('finish_subTask',subTask=>{
@@ -309,7 +362,18 @@ io.on('connection',(socket)=>{
                     task.subtasks.splice(indexToRemove, 1);
                     
                     if(task.subtasks.length===0){//finish one big task
-                        task.subtasks=generateRandomSubtasks();
+                        tasks.splice(i, 1);
+                        let t = generateRandomSubtasks();
+                        tasks.push({
+                            subtasks:t.subtasks,
+                            duration:200,
+                            score:t.score
+                        })
+                        // subtasks: generateRandomSubtasks().subtasks , duration :200, score:generateRandomSubtasks().score},
+                       
+                        // task.subtasks=t.subtasks;
+                        // task.score = t.score;
+                        // task.duration=200;
                     }
                     // console.log("now task",tasks)
                     io.emit('displayTask',tasks);//to be implement as same room
@@ -318,20 +382,38 @@ io.on('connection',(socket)=>{
         }})
 
         socket.emit('getID',socket.id);
+        socket.on('playerName',playerName=>{
+            if(! players[socket.id].name)
+                players[socket.id].name= playerName;
+              
+        console.log('playerName has name, player is',players)
+        io.emit('updatePlayers',players); 
+        })
     
         let initX = 600, initY=455;
-        players[socket.id] = {x:initX , y :initY , inGame:false,doneList:{
-         A:0,B:0,C:0,D:0 //...
-        }};
+        players[socket.id] = {
+            x:initX , 
+            y:initY , 
+            inGame:false,
+            doneList:{A:0,B:0,C:0,D:0},
+            score:0,
+            name:null
+        };
 
-        // console.log('construct player is',players)
+        console.log('construct player is',players)
         // console.log(socket.id + " is connected my server");
-        io.emit('updatePlayers',players);
+        // io.emit('updatePlayers',players);
     
         socket.on('disconnect',(reason)=>{
             console.log(reason);
             delete players[socket.id];
             io.emit('updatePlayers',players);
+            // console.log(Object.keys(players).length )
+            if(Object.keys(players).length === 0){
+               clearInterval(countdownInterval)
+                clearInterval(taskIntival)
+                temp=true
+            }
         })
         
         io.emit('drawItem',itemArray);
@@ -402,21 +484,40 @@ io.on('connection',(socket)=>{
                         flg=false
                 }
                 if(flg){
+                    //index i of teaks can be finished
                     console.log('can')
                    
                     for(let j=0;j<tasks[i].subtasks.length;++j){
                         players[id].doneList[tasks[i].subtasks[j]]--
                            
                     }
-                    tasks[i].subtasks=generateRandomSubtasks();
-                    tasks[i].duration=200
+                    players[id].score+=tasks[i].score;
+                    // tasks[i].subtasks=generateRandomSubtasks();
+                    // tasks[i].duration=200
+                    tasks.splice(i, 1);
+                    let t = generateRandomSubtasks();
+                    tasks.push({
+                        subtasks:t.subtasks,
+                        duration:200,
+                        score:t.score
+                    })
+
+                    
+                    // let t = generateRandomSubtasks();
+                    // tasks[i].subtasks=t.subtasks;
+                    // tasks[i].score = t.score;
+                    // tasks[i].duration=200;
+
                     io.emit('updatePlayers',players);
+
+                    // console.log('Player is ',players)
                     
     
     
                 }
             }
         })
+
 
         socket.on('submit-score', ({ name, score}) => {
             console.log('In Submit score for player: ', name, ' with score: ', score, ' and socketId: ', socket.id);

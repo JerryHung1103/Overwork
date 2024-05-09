@@ -1,4 +1,4 @@
-const Player=function(socket,id,ctx,src,width,height,x,y,rate,speedTiming,stage,walls,list){
+const Player=function(socket,id,ctx,src,width,height,x,y,rate,speedTiming,stage,walls,list,name,score){
 
     // let walls=[
     //     {x:700,y:250,width:300,height:100,type:'submission'},
@@ -22,6 +22,16 @@ const Player=function(socket,id,ctx,src,width,height,x,y,rate,speedTiming,stage,
         doneList['B']=d['B']
         doneList['C']=d['C']
         doneList['D']=d['D']
+    }
+
+  
+    function setScore(s){
+        score=s
+        
+    }
+
+    function getScore(){
+        return score
     }
   
     let speed=1;
@@ -212,12 +222,12 @@ let IsStopping=true;
 
      //this can be hard coded
      function getCenterX(){
-        return x+64;
+        return x+37.5;
     }
     
     
     function getCenterY(){
-        return y+75;
+        return y+50;
     }
 
    
@@ -245,7 +255,10 @@ let IsStopping=true;
         updateList,
         setdoneList,
         doneList,
-        id
+        id,
+        name,
+        getScore,
+        setScore
         // socket
         
    
