@@ -85,7 +85,7 @@ function showScore(players){
     let x=1000
     // console.log(players)
     for(const id in players){
-        ctx.fillText(`player ${players[id].name} has score: ${players[id].getScore()}`,x,y)
+        ctx.fillText(`player ${players[id].getName()} has score: ${players[id].getScore()}`,x,y)
         y+=100
     }
 }
@@ -126,8 +126,10 @@ function fetchGameOverPage(){
     })
 }
 
-socket.on('GameOver',(players)=>{
-    submitScore(playerName, pos.score);
+socket.on('GameOver',()=>{
+
+
+    submitScore(players[browserID].getName(), players[browserID].getScore());
 })
 
 //For testing 
