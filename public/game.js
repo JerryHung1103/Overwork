@@ -247,15 +247,15 @@ socket.on('drawItem',backendItemArray=>{
 
           
             Barrier(210,580,70,65,players,socket,0.5,0,'jobArea',item1[0],bookSFX),
-            Barrier(210+360,580,70,65,players,socket,.5,1,'jobArea',item1[1],writingSFX),
-            Barrier(210+360*2,580,70,65,players,socket,.5,2,'jobArea',item1[2],printerSFX),
-            Barrier(210+360*3,580,70,65,players,socket,.5,3,'jobArea',item1[3],keyboardSFX),
+            Barrier(210+360,580,70,65,players,socket,.5,1,'jobArea',item1[1],bookSFX),
+            Barrier(210+360*2,580,70,65,players,socket,.5,2,'jobArea',item1[2],bookSFX),
+            Barrier(210+360*3,580,70,65,players,socket,.5,3,'jobArea',item1[3],bookSFX),
             //initx intiy width height playerList socket(optional actually   is not needed), bar rate, id, type
           
-            Barrier(420,380,70,65,players,socket,0.5,0,'jobArea',item1[4],bookSFX),
-            Barrier(420+360,380,70,65,players,socket,.5,1,'jobArea',item1[5],writingSFX),
-            Barrier(420+360*2,380,70,65,players,socket,.5,2,'jobArea',item1[6],printerSFX),
-            Barrier(420+360*3,380,70,65,players,socket,.5,3,'jobArea',item1[7],keyboardSFX),
+            Barrier(420,380,70,65,players,socket,0.5,4,'jobArea',item1[4],bookSFX),
+            Barrier(420+360,380,70,65,players,socket,.5,5,'jobArea',item1[5],bookSFX),
+            Barrier(420+360*2,380,70,65,players,socket,.5,6,'jobArea',item1[6],bookSFX),
+            Barrier(420+360*3,380,70,65,players,socket,.5,7,'jobArea',item1[7],bookSFX),
         
         
         ];
@@ -285,9 +285,6 @@ socket.on('updateBarriers',state=>{
 
 let timeRemaining=120;
 
-function drawAllTable(){
-    
-}
 
 
 function drawAnimation(now){
@@ -504,30 +501,78 @@ socket.on('moveByID_front',id=>{
     players[id].moveFront();
 })
 
-// document.addEventListener('keyup',event=>{
-//     let keycode=event.keyCode;
-//     switch(keycode){
-//         case 83: case 87:  case 65: case 68:socket.emit('stop','');     
-//     }
-// });
+document.addEventListener('keyup',event=>{
+    let keycode=event.keyCode;
+    if(keycode===32){
+        socket.emit('stop','');     
+    }
+    else if(keycode===65){
+       socket.emit('resumeSpeed')
+    }
+   
+});
+document.addEventListener('keydown',event=>{
+    let keycode=event.keyCode;
+    if(keycode===65){
+        // console.log('gggggg')
+        let WorkingState=players[browserID].getWorkingState();
+        console.log(WorkingState.isWorking)
+        if(WorkingState.isWorking){
+            socket.emit('cheatMode',WorkingState.table);
 
-// document.addEventListener('keydown',event=>{
-//     let keycode=event.keyCode;
-//     switch(keycode){
-//         case 68:
-//             socket.emit('move','right');
-//             break;
-//         case 65:
-//             socket.emit('move','left');
-//             break;
-//         case 87:
-//             socket.emit('move','up');
-//             break;
-//         case 83:
-//             socket.emit('move','front');
-//             break;
-//     }
-// });
+        }
+    }
+})
+socket.on('resumeSpeed',()=>{
+    barriers.forEach(b=>{
+        b.setSpeed(.5);
+    })
+})
+socket.on('cheatMode',index=>{
+    barriers[index].setSpeed(2)
+})
+socket.on('HideTask',index=>{
+    console.log('calling HideTask hide index',index)
+    barriers[index].setShow(false)
+    item1[index].show=false;
+
+    setTimeout(()=>{
+        barriers[index].setShow(true);
+        item1[index].show=true;
+    },5000)
+})
+
+document.addEventListener('keydown',event=>{
+    let keycode=event.keyCode;
+    if(keycode===32){
+        let stage=players[browserID].getStage();
+        for(let i=0;i<50;++i){
+            switch(stage){
+                case 'stayRight':
+                case 'movingRight':
+                    socket.emit('move', 'right');
+                break;
+
+                case 'stayFront':
+                case 'movingFront':
+                    socket.emit('move', 'front');
+                break;
+                case 'stayLeft':
+                case 'movingLeft':
+                    socket.emit('move', 'left');
+                break;
+
+                case 'stayUp':
+                case 'movingUp':
+                    socket.emit('move', 'up');
+                break;
+            
+                    
+            }
+               
+        }
+    }  
+});
 
 socket.on('stopByID',id=>{
     players[id].stop();
@@ -926,6 +971,7 @@ function drawDoneList(playerid,x,y,doneList ){
         x += Ygap;
     }
 }
+
 
 
 
