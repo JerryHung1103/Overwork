@@ -65,6 +65,7 @@
     }
   </style>
 <script>
+  
   const playerName = sessionStorage.getItem('playerName');
   console.log(playerName);
   const socket = io();
@@ -75,6 +76,7 @@
 
   function sendPlayAgainRequest(){
     socket.emit('play-again', { player: playerName });
+    console.log('request playagain')
   }
 
   socket.on('quitting', () => {
@@ -106,6 +108,8 @@
     });
 
     playButton.addEventListener('click', function() {
+      console.log('playagain')
+      // fetchGamePage();
       sendPlayAgainRequest();
     });
   });
@@ -125,5 +129,8 @@
     <button class="Quit">Quit game</button>
     <button class="Play">Play again</button>
   </div>
+
+
+
 </body>
 </html>
