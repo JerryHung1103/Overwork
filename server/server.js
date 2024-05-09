@@ -299,6 +299,17 @@ function switchItem(){
 // }
 let gameDuration;
 let taskIntival;
+
+
+function restartAnyThing(){
+    gameDuration=25;
+    tasks=[]
+    for(let i=0;i<3;++i){
+        let task =  generateRandomSubtasks();
+        tasks.push( {  subtasks: task.subtasks , duration :200, score:task.score})
+    }
+}
+
 io.on('connection',(socket)=>{
 
     
@@ -309,7 +320,7 @@ io.on('connection',(socket)=>{
         // console.log('Connection established from the game.html page');
         io.emit('displayTask',tasks); //to be implement as same room
         if(temp){
-            gameDuration=120//to be changed
+            gameDuration=25//to be changed
             taskIntival= setInterval(()=>{
                 tasks.forEach(t=>{
                     t.duration--;
@@ -340,7 +351,7 @@ io.on('connection',(socket)=>{
                     clearInterval(countdownInterval)
                     temp=true
                     console.log('end game')
-                    // io.emit('GameOver',players);
+                    io.emit('GameOver',players);
                 }
                 else{
                     io.emit('countdown', gameDuration);
@@ -583,12 +594,24 @@ io.on('connection',(socket)=>{
             }
         });
 
+
+
+
+       
+
     } else{
         // console.log('Connection established from the index.html page');
+        socket.on('play-again',()=>{
+            console.log('play again!!!!')
+            restartAnyThing()
+            io.emit('restart-game');
+        })
     }
 
 })
 
 httpServer.listen(8000);
+
+
 
 
