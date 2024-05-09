@@ -12,8 +12,11 @@ canvas.height=700;
 const playerWidth=576/9;
 const playerHeight = 256/4;
 
-const ItemWidth=240/10;
-const ItemHeight = 200/8;
+// const ItemWidth=240/10;
+// const ItemHeight = 200/8;
+
+const ItemWidth=128/4;
+const ItemHeight = 32;
 
 const teaWidth = 360/4;
 const teaHeight = 120;
@@ -27,11 +30,8 @@ let backgroundImg = new Image();
 let teaSteamImg = new Image();
 let birdImg = new Image();
 let JobArea = new Image();
-//width is 38
-//height is 44
-//gap is 3, first one is 2
-//gap height is 2
-//first item is 2.2 and 10,10
+
+doneList={A:0,B:0,C:0,D:0}//Test
 
 // Play BGM
 const audio = new Audio('audio/bgm.mp3');
@@ -39,7 +39,7 @@ const bookSFX = new Audio('audio/book.mp3');
 const keyboardSFX = new Audio('audio/keyboard.mp3');
 const printerSFX = new Audio('audio/printer.mp3');
 const writingSFX = new Audio('audio/writing.mp3');
-audio.volume = 0.5; // Adjust the volume value as desired (between 0.0 and 1.0)
+audio.volume = 0.1; // Adjust the volume value as desired (between 0.0 and 1.0)
 
 audio.addEventListener('canplaythrough', () => {
   audio.play();
@@ -63,7 +63,7 @@ backgroundImg.onload=()=>{
             }
             teaSteamImg.src='/image/TeaSteam.png'
         }
-        itemImg.src = '/image/player_sprite.png'
+        itemImg.src = '/image/blingbling.png'
     }
     playerImg.src= '/image/BusinessManSprites.png'
 }
@@ -74,8 +74,21 @@ let browserID;
 
 // Scoring: Things to pass back to the server when game ends
 const playerName = sessionStorage.getItem('playerName');
+console.log('playerName is =========================='); 
 console.log(playerName); 
+socket.emit('playerName',playerName)
+
 let score = 0;
+
+function showScore(players){
+    let y=100
+    let x=1000
+    // console.log(players)
+    for(const id in players){
+        ctx.fillText(`player ${players[id].name} has score: ${players[id].getScore()}`,x,y)
+        y+=100
+    }
+}
 
 function submitScore(name, score) {
     const data = { name, score};
@@ -113,6 +126,12 @@ function fetchGameOverPage(){
     })
 }
 
+socket.on('GameOver',(players)=>{
+    for(let id in players){
+        submitScore(players[id].name, players[id].score)
+    }
+  
+})
 
 //For testing 
 // socket.on('connect', ()=>{
@@ -178,11 +197,18 @@ socket.on('updatePlayers',(backend_players)=>{
     for(const id in backend_players){
         const pos = backend_players[id];
         if(!players[id]){
-            players[id]=Player(socket,id,ctx,playerImg,playerWidth,playerHeight,pos.x,pos.y,2,50, 'stayFront',
-            wall,pos.doneList)
+            players[id]=Player(socket,id,ctx,playerImg,playerWidth,playerHeight,pos.x,pos.y,1.2,50, 'stayFront',
+            wall,pos.doneList,pos.name,pos.score)
         }
         else{
             players[id].setdoneList(pos.doneList)
+            players[id].setScore(pos.score)
+
+          
+            // console.log(players[id].getScore())
+           
+
+            // console.log('=====================')
         }
         
     }
@@ -193,7 +219,7 @@ socket.on('updatePlayers',(backend_players)=>{
         }
     }
 
-    console.log('after updating', players)
+    // console.log('after updating', players)
     
 })
 socket.on('updateDoneList',info=>{
@@ -217,27 +243,28 @@ let showItem1;
 socket.on('drawItem',backendItemArray=>{
     backendItemArray.forEach(backendItem=> item1.push(
         {
-            item:Item(ctx,itemImg,ItemWidth,ItemHeight,backendItem.x,backendItem.y,1,50, 'movingFront',backendItem.type),
+            item:Item(ctx,itemImg,ItemWidth,ItemHeight,backendItem.x,backendItem.y,2,100, 'movingFront',backendItem.type),
             show:backendItem.show
         }))
         barriers = [
 
           
-            Barrier(210,580,70,65,players,socket,0.5,0,'jobArea',item1[0]),
-            Barrier(210+360,580,70,65,players,socket,.5,1,'jobArea',item1[1]),
-            Barrier(210+360*2,580,70,65,players,socket,.5,2,'jobArea',item1[2]),
-            Barrier(210+360*3,580,70,65,players,socket,.5,3,'jobArea',item1[3]),
+            Barrier(210,580,70,65,players,socket,0.5,0,'jobArea',item1[0],bookSFX),
+            Barrier(210+360,580,70,65,players,socket,.5,1,'jobArea',item1[1],bookSFX),
+            Barrier(210+360*2,580,70,65,players,socket,.5,2,'jobArea',item1[2],bookSFX),
+            Barrier(210+360*3,580,70,65,players,socket,.5,3,'jobArea',item1[3],bookSFX),
             //initx intiy width height playerList socket(optional actually   is not needed), bar rate, id, type
           
-            Barrier(420,380,70,65,players,socket,0.5,0,'jobArea',item1[4]),
-            Barrier(420+360,380,70,65,players,socket,.5,1,'jobArea',item1[5]),
-            Barrier(420+360*2,380,70,65,players,socket,.5,2,'jobArea',item1[6]),
-            Barrier(420+360*3,380,70,65,players,socket,.5,3,'jobArea',item1[7]),
+            Barrier(420,380,70,65,players,socket,0.5,0,'jobArea',item1[4],bookSFX),
+            Barrier(420+360,380,70,65,players,socket,.5,1,'jobArea',item1[5],bookSFX),
+            Barrier(420+360*2,380,70,65,players,socket,.5,2,'jobArea',item1[6],bookSFX),
+            Barrier(420+360*3,380,70,65,players,socket,.5,3,'jobArea',item1[7],bookSFX),
         
         
         ];
    
 })
+
 
 socket.on('change_state_to',show=>{
     item1.forEach(i=>i.show=show)
@@ -246,43 +273,35 @@ socket.on('change_state_to',show=>{
 
 const subtaskWidth=50;
 const subtaskHeight=50;
-let task=[];
+
 let numberofCurrentTask=0;
 
-socket.on('displayTask',tasks=>{
-    // console.log('displayTask')
-    let taskCnt={}
-    tasks.forEach(t=>{
-        // console.log(t.subtasks.length)
-        numberofCurrentTask+=t.subtasks.length
-        t.subtasks.forEach(subt=>{
-            if(!taskCnt[subt])taskCnt[subt]=1;
-            else taskCnt[subt]++;
-        })
-    });
-    task=tasks;
-    item1.forEach(i=>{
-        if(taskCnt[i.item.type]){
-            i.show=true
-        }
-        else{
-            i.show=false
-        }
-    })
-    
-});
+// let xxx=100,yyy=100;
+// function drawDot(x,y){
+//     ctx.fillRect(x,y,5,5);
+// }
+
 
 socket.on('updateBarriers',state=>{
     barriers[state.id].update(state.progressing,state.stopProgres)
 })
 
+let timeRemaining=120;
+
+function drawAllTable(){
+    
+}
+
+
 function drawAnimation(now){
     // Clear the canvas
     ctx.clearRect(0,0,cvw,cvh)
-  
+   
     // Redraw the background
     ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
 
+    showScore(players);
+    // drawDot(xxx,yyy)
     // Draw tea animation
     const frameIndex = Math.floor(now / 100) % 4; // Change frame every 100 milliseconds
     const teaframeX = frameIndex * teaWidth;
@@ -297,50 +316,26 @@ function drawAnimation(now){
 
     ctx.drawImage(birdImg, birdFrameX, 0, birdWidth, birdHeight, birdX, birdY, birdWidth / 3, birdHeight/ 3);
 
-    if(task){
-        // ctx.lineWidth = 2; 
-        // ctx.strokeRect(0,0,numberofCurrentTask*subtaskWidth,50)
-        var x = 10; // X position
-        var y = 20; // Y position
-
-        // Display the task list
-        for (var i = 0; i < task.length; i++) {
-            var t = task[i];
-            // ctx.fillText("Task ID: " + t.name, x, y);
-
-            var subtasks = t.subtasks.join(", ");
-            ctx.fillText("Subtasks: " + subtasks, x, y + 20);
-
-            x += 100; // Move to the next task position
-        }
-
-
-        // for(let i =0;i<numberofCurrentTask;++i){
-        //     if(i%2) ctx.fillStyle = "#4caf50"
-        //     else ctx.fillStyle = "black";
-        //     ctx.fillRect(i*subtaskWidth,0,subtaskWidth,subtaskHeight)
-        // }
     
-    }
 
     const tableWidth=150
     const secondRowY=550
     const firstRowY=350
     const firstRowstartingX=350
     ctx.drawImage(JobArea,
-                20,200,400,450,
+                20+420*0,200,400,450,
                 140,secondRowY,tableWidth,tableWidth
             )//Drawing the jobTable
     ctx.drawImage(JobArea,
-                20,200,400,450,
+                20+420*1,200,400,450,
                 500,secondRowY,tableWidth,tableWidth
             )//Drawing the jobTable
     ctx.drawImage(JobArea,
-                20,200,400,450,
+                20+420*2,200,400,450,
                 860,secondRowY,tableWidth,tableWidth
             )//Drawing the jobTable
     ctx.drawImage(JobArea,
-                20,200,400,450,
+                20+420*3,200,400,450,
                 1220,secondRowY,tableWidth,tableWidth
             )//Drawing the jobTable
 
@@ -351,15 +346,15 @@ function drawAnimation(now){
                 firstRowstartingX,firstRowY,tableWidth,tableWidth
             )//Drawing the jobTable
     ctx.drawImage(JobArea,
-                20,200,400,450,
+                20+420,200,400,450,
                 firstRowstartingX+360,firstRowY,tableWidth,tableWidth
             )//Drawing the jobTable
     ctx.drawImage(JobArea,
-                20,200,400,450,
+                20+420*2,200,400,450,
                 firstRowstartingX+2*360,firstRowY,tableWidth,tableWidth
             )//Drawing the jobTable
     ctx.drawImage(JobArea,
-                20,200,400,450,
+                20+420*3,200,400,450,
                 firstRowstartingX+3*360,firstRowY,tableWidth,tableWidth
             )//Drawing the jobTable
 
@@ -398,7 +393,7 @@ function drawAnimation(now){
     //         item1.draw();
     //     }
     // }
-       
+    let x=20;
     for(const id in players){
         // console.log(id)
         players[id].update(now);
@@ -415,58 +410,85 @@ function drawAnimation(now){
         if(barriers){
             barriers.forEach((barrier,index)=>{
                 let interactionState = barrier.checkPlayer(players[id],id);
-                console.log('interaction state is',interactionState);
+                // console.log('interaction state is',interactionState);
                 if(interactionState == 0 ){//and index is currently active
                     barriers[index].startCountDown()//check if players are entering the job area
                     // Play task music
-                    if (index % 4 == 0) {
-                        bookSFX.loop = true; 
-                        bookSFX.play();
-                    } else if (index % 4 == 1) {
-                        keyboardSFX.loop = true;
-                        keyboardSFX.play();
-                    } else if (index % 4 == 2) {
-                        printerSFX.loop = true;
-                        printerSFX.play();
-                    } else if (index % 4 == 3) {
-                        writingSFX.loop = true;
-                        writingSFX.play();
-                    }
+                    // if (index % 4 == 0) {
+                    //     bookSFX.loop = true; 
+                    //     bookSFX.play();
+                    // } else if (index % 4 == 1) {
+                    //     keyboardSFX.loop = true;
+                    //     keyboardSFX.play();
+                    // } else if (index % 4 == 2) {
+                    //     printerSFX.loop = true;
+                    //     printerSFX.play();
+                    // } else if (index % 4 == 3) {
+                    //     writingSFX.loop = true;
+                    //     writingSFX.play();
+                    // }
     
                 } 
                 // Stop the task music when the player leaves the task area
                 else if (interactionState == 1) {
-                    console.log("Leaving task area");
-                    bookSFX.pause();
-                    keyboardSFX.pause();
-                    printerSFX.pause();
-                    writingSFX.pause();
+                    // bookSFX.pause();
+                    // keyboardSFX.pause();
+                    // printerSFX.pause();
+                    // writingSFX.pause();
                 }
                 
             })
         }
+        
+        drawDoneList(players[id].name,700,x,players[id].doneList)
+        x+=80
+        // drawDoneList('hehe',700,100,doneList)
+
+
+
     }
+    drawTimer(timeRemaining,800,200)
+    drawTasks();
+
+
+    
+
+
+    // drawDoneList('haha',700,20,doneList)
+    // drawDoneList('hehe',700,100,doneList)
     requestAnimationFrame(drawAnimation);
 }
 
-// document.addEventListener('keydown',event=>{
-//     let keycode=event.keyCode;
-//     switch(keycode){
-//         case 68:
-//             socket.emit('move','right');
-//             break;
-//         case 65:
-//             socket.emit('move','left');
-//             break;
-//         case 87:
-//             socket.emit('move','up');
-//             break;
-//         case 83:
-//             socket.emit('move','front');
-//             break;
-//     }
-// });
+function drawTimer(timeRemaining, x, y) {
+    // Save the current context settings
+    ctx.save();
+  
+    // Set styles for the timer
+    ctx.font = '40px Arial';
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#333333';
+    ctx.lineWidth = 5;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+  
+    // Calculate the minutes and seconds
+    const minutes = Math.floor(timeRemaining / 60);
+    const seconds = timeRemaining % 60;
+  
+    // Format the time as MM:SS
+    const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  
+    // Draw the timer text at the specified location
+    ctx.fillText(formattedTime, x, y);
+    ctx.strokeText(formattedTime, x, y);
+  
+    // Restore the context settings
+    ctx.restore();
+}
 
+socket.on('countdown', function(gameDuration) {
+    timeRemaining=gameDuration
+});
 socket.on('moveByID_right',id=>{
     players[id].moveRight();
     socket.emit('updatePos',{x:players[id].getCenterX(), y:players[id].getCenterY()})
@@ -485,6 +507,24 @@ socket.on('moveByID_front',id=>{
 //     let keycode=event.keyCode;
 //     switch(keycode){
 //         case 83: case 87:  case 65: case 68:socket.emit('stop','');     
+//     }
+// });
+
+// document.addEventListener('keydown',event=>{
+//     let keycode=event.keyCode;
+//     switch(keycode){
+//         case 68:
+//             socket.emit('move','right');
+//             break;
+//         case 65:
+//             socket.emit('move','left');
+//             break;
+//         case 87:
+//             socket.emit('move','up');
+//             break;
+//         case 83:
+//             socket.emit('move','front');
+//             break;
 //     }
 // });
 
@@ -511,31 +551,34 @@ canvas.addEventListener('click', function(event) {
 
         console.log('Clicked at: x=' + x + ', y=' + y);
 
-        let playerX= players[browserID].getX();
-        let playerY= players[browserID].getY();
+        // xxx=x,yyy=y
+
+        let playerX= players[browserID].getCenterX();
+        let playerY= players[browserID].getCenterY();
         let diffX = Math.abs(playerX - x);
         let diffY = Math.abs(playerY - y);
 
         //1st quadrant
         if(playerX<=x && playerY>=y){
             state.moving=true;
+            // console.log('moving 1 quadrant')
             if(diffX<=diffY){
                 let id= setInterval(() => {
                     players[browserID].setPlayerIntival(id);
                     state.id=id;
             
                     socket.emit('move', 'right');
-   
+                    // console.log('moving right')
                     if( players[browserID].getCenterX()  >x ){      
                         clearInterval(id);
-                       
+                        // console.log('moving right stop')
                             id= setInterval(() => {
                                 players[browserID].setPlayerIntival(id);
                                 state.id=id;
                                 
                    
                                 socket.emit('move', 'up');
-                             
+                               
                                 if( players[browserID].getCenterY()<y){
                                     clearInterval(id);
                                     socket.emit('stop','');    
@@ -757,6 +800,131 @@ canvas.addEventListener('click', function(event) {
         }
 });
 
+// let task=[];
+socket.on('displayTask',t=>{
+    tasks=t;
+    // let exits={
+    //     'A':false,
+    //     'B':false,
+    //     'C':false,
+    //     'D':false
+    // }
+
+    // tasks.forEach(t=>{
+    //     t.subtasks.forEach(st=>{
+    //         if(!exits[st]){
+    //             exits[st]=true
+    //         }
+    //     })
+    // })
+
+ 
+
+    // barriers.forEach(b=>{
+    
+    //     if(exits[b.itemType]){
+    //         if(!b.item.show)
+    //             b.setShow(true)
+    //     }
+    //     else{
+    //         if(b.item.show)
+    //             b.setShow(false)
+    //     }
+    // })
+
+
+});
+var tasks = [
+    // { subtasks: generateRandomSubtasks(), duration: 200 },
+    // { subtasks: generateRandomSubtasks(), duration: 200 },
+    // { subtasks: generateRandomSubtasks(), duration: 200 }
+  ];
+
+function drawingSubtask(type,x,y){
+    switch(type){
+        case 'A':
+            ctx.drawImage(JobArea, 110*0,0,110,110 ,x, y, 20, 20);
+            break;
+        case 'B':
+            ctx.drawImage(JobArea, 110*1,0,110,110 ,x, y, 20, 20);
+            break;
+        case 'C':
+            ctx.drawImage(JobArea, 110*2,0,110,110 ,x, y, 20, 20);
+            break;
+        case 'D':
+            ctx.drawImage(JobArea, 110*3,0,110,110 ,x, y, 20, 20);
+            break;
+    }
+
+}
+
+  function drawTasks() {
+
+    if(tasks)
+      {ctx.save()
+   
+
+    var horizontalOffset = 10; // Offset for horizontal positioning
+    var verticalOffset = 50; // Offset for vertical positioning
+
+    for (var i = 0; i < tasks.length; i++) {
+      var task = tasks[i];
+      var remainingDuration = task.duration;
+
+      // Display remaining duration
+   
+      ctx.fillStyle = 'red';
+      ctx.fillRect(horizontalOffset, verticalOffset,100,5);
+    ctx.fillStyle = 'green';
+    ctx.fillRect(horizontalOffset, verticalOffset,100*(remainingDuration/200),5);
+    
+      ctx.strokeRect(horizontalOffset, verticalOffset,100,5)
+      ctx.fillStyle = 'black';
+      ctx.font = '16px Arial';
+      ctx.fillText(`${remainingDuration}s left`, horizontalOffset, verticalOffset-5);
+
+      ctx.fillStyle = 'black';
+      ctx.font = '14px Arial';
+      var subtasksText = 'Subtasks: ' 
+    //   + task.subtasks.join(' ');
+      ctx.fillText(subtasksText, horizontalOffset, verticalOffset + 20);
+
+      // Display image below the text
+      let posx=horizontalOffset;
+      tasks[i].subtasks.forEach(st=>{
+        drawingSubtask(st,posx,verticalOffset + 40)
+        posx+=40
+      })
+    //   ctx.drawImage(JobArea, horizontalOffset, verticalOffset + 40, 40, 40);
+
+      // Update horizontal offset for the next task
+      horizontalOffset += 200;
+
+      // Reset horizontal offset and move to the next row if necessary
+      if (horizontalOffset + 200 > canvas.width) {
+        horizontalOffset = 10;
+        verticalOffset += 120;
+      }
+    }
+
+    ctx.restore()}
+  }
+
+
+  
+function drawDoneList(playerid,x,y,doneList ){
+            
+    const Xgap=25
+    const Ygap=50
+    const ydiff=13
+    ctx.fillText(`Player ${playerid}`, x, y );
+    y+=20
+    for(const id in doneList){
+        drawingSubtask(id,x,y)
+        ctx.fillText(doneList[id], x+Xgap, y +ydiff); 
+        x += Ygap;
+    }
+}
 
 
 
