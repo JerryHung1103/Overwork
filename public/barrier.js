@@ -4,6 +4,10 @@ const Barrier=(x,y,width,height,players,socket,progressDuration,id,type,item,aud
         item.show=s;
     }
 
+    function setSpeed(s){
+        progressDuration=s;
+    }
+
     function Set_stopping_state(stage){
         stopping_state=stage
     }       
@@ -17,7 +21,10 @@ const Barrier=(x,y,width,height,players,socket,progressDuration,id,type,item,aud
         
             if(progress>=barwidth){
                 if(playerInside){//finished
-                    
+                    playerInside.setWorkingState({
+                        isWorking:false,
+                        id:id
+                    })
                     if(item)
                    { 
                     audio.pause()
@@ -27,11 +34,12 @@ const Barrier=(x,y,width,height,players,socket,progressDuration,id,type,item,aud
                     if(playerInside)
                         playerInside.updateList(playerInside.id,item.item.type,playerInside.doneList[item.item.type]+1)
               
-                    
-                    item.show=false;
-                    setTimeout(()=>{
-                        item.show=true;
-                    },5000)
+                    socket.emit('hideTask',id)
+                    // console.log('hide',id)
+                    // item.show=false;
+                    // setTimeout(()=>{
+                    //     item.show=true;
+                    // },5000)
                 }
                     playerInside=null;
                 }
@@ -96,11 +104,19 @@ const Barrier=(x,y,width,height,players,socket,progressDuration,id,type,item,aud
                         console.log('player',playerInside.id,'inside!!!')
                         console.log('id is',socketid)
                         audio.play();
+                        playerInside.setWorkingState({
+                            isWorking:true,
+                            id:id
+                        })
                     }
                 if(!progressing){
                     audio.play();
                     progressing=true;
                     stopProgres=false
+                    playerInside.setWorkingState({
+                        isWorking:true,
+                        id:id
+                    })
                     socket.emit('update_barrier',{id:id,progressing:progressing,stopProgres:stopProgres,player:playerInside})
                     return 0;
                 }
@@ -110,6 +126,10 @@ const Barrier=(x,y,width,height,players,socket,progressDuration,id,type,item,aud
             if(progressing && playerInside===p){
                 console.log('player',p.id,'out!!!')
                 //that player is leaving the job area
+                playerInside.setWorkingState({
+                    isWorking:false,
+                    id:id
+                })
                 audio.pause();
                 playerInside=null
                 progressing=false
@@ -146,9 +166,11 @@ const Barrier=(x,y,width,height,players,socket,progressDuration,id,type,item,aud
         type,
         item,
         itemType:item.item.type,
-        setShow
+        setShow,
+        setSpeed
     
     }
     
     
     }
+
