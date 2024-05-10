@@ -302,7 +302,7 @@ let taskIntival;
 
 
 function restartAnyThing(){
-    gameDuration=25;
+    gameDuration=120;
     tasks=[]
     for(let i=0;i<3;++i){
         let task =  generateRandomSubtasks();
@@ -326,7 +326,7 @@ io.on('connection',(socket)=>{
         // console.log('Connection established from the game.html page');
         io.emit('displayTask',tasks); //to be implement as same room
         if(temp){
-            gameDuration=25//to be changed
+            gameDuration=120//to be changed
             taskIntival= setInterval(()=>{
                 tasks.forEach(t=>{
                     t.duration--;
@@ -557,7 +557,7 @@ io.on('connection',(socket)=>{
             console.log(playerScoreArray);
             if (playerScoreArray.length == 2) {
                 let player1Score = -Infinity;
-                let player2Score;
+                let player2Score = -Infinity;
                 let player1Name;
                 let player2Name;
                 let totalScore = 0;
@@ -566,7 +566,7 @@ io.on('connection',(socket)=>{
                     const { socketId } = socket;
             
                     // 3.2. Calculate the total score
-                    totalScore += score;
+                    totalScore += player.score;
             
                     // 3.3. Rank the players
                     if (player.score > player1Score) {
