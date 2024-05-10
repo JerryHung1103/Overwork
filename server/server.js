@@ -583,8 +583,13 @@ io.on('connection',(socket)=>{
                 });    
             
                 // 4. Determine if they players have won or lost
-                // Assume always win for now for testing
-                const gameState = 'win';
+                // win == total score >= 400 and each player score >= 200
+                let gameState;
+                if (totalScore >= 400 && player1Score >= 200 && player2Score >= 200) {
+                    gameState = 'win';
+                } else {
+                    gameState = 'lose';
+                }
             
                 // 5. Store the gameover status
                 gameoverStatus = {player1Name, player1Score, player2Name, player2Score, totalScore, gameState};
