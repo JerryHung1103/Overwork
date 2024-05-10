@@ -202,12 +202,9 @@ socket.on('updatePlayers',(backend_players)=>{
         else{
             players[id].setdoneList(pos.doneList)
             players[id].setScore(pos.score)
+            players[id].setName(pos.name)
 
-          
-            // console.log(players[id].getScore())
-           
-
-            // console.log('=====================')
+        
         }
         
     }
@@ -440,7 +437,7 @@ function drawAnimation(now){
             })
         }
         
-        drawDoneList(players[id].name,700,x,players[id].doneList)
+        drawDoneList(players[id].getName(),700,x,players[id].doneList)
         x+=80
         // drawDoneList('hehe',700,100,doneList)
 
@@ -973,9 +970,5 @@ function drawDoneList(playerid,x,y,doneList ){
         x += Ygap;
     }
 }
-
-
-
-
 
 
