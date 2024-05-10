@@ -15,7 +15,7 @@ const fs = require('fs');
 
 const path = require('path');
 const { clearInterval } = require('timers');
-
+const Time =120;
 let players = {};
 let playerScoreArray=[];
 
@@ -302,7 +302,7 @@ let taskIntival;
 
 
 function restartAnyThing(){
-    gameDuration=120;
+    gameDuration=Time;
     tasks=[]
     for(let i=0;i<3;++i){
         let task =  generateRandomSubtasks();
@@ -326,7 +326,7 @@ io.on('connection',(socket)=>{
         // console.log('Connection established from the game.html page');
         io.emit('displayTask',tasks); //to be implement as same room
         if(temp){
-            gameDuration=120//to be changed
+            gameDuration=Time//to be changed
             taskIntival= setInterval(()=>{
                 tasks.forEach(t=>{
                     t.duration--;
@@ -447,6 +447,7 @@ io.on('connection',(socket)=>{
             io.emit('resumeSpeed')
         })
         socket.on('hideTask',id=>{
+            console.log('hiding',id)
             io.emit('HideTask',id);
         })
         socket.on('moveRight',(obj)=>{
@@ -531,6 +532,7 @@ io.on('connection',(socket)=>{
                     // tasks[i].duration=200;
 
                     io.emit('updatePlayers',players);
+                    io.emit('playEffect')
 
                     // console.log('Player is ',players)
                     
@@ -540,6 +542,10 @@ io.on('connection',(socket)=>{
             }
         })
 
+
+        socket.on('pauseAudio',id=>{
+            io.emit('pauseAudio',id);
+        })
         socket.on('submit-score', ({ name, score}) => {
             console.log('In Submit score for player: ', name, ' with score: ', score, ' and socketId: ', socket.id);
             // 1. Create a new player object
@@ -629,6 +635,13 @@ io.on('connection',(socket)=>{
 })
 
 httpServer.listen(8000);
+
+
+
+
+
+
+
 
 
 
