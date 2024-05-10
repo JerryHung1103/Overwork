@@ -1,6 +1,6 @@
 const socket = io();
-console.log("Printing window socket");
-console.log(window.socket);
+// console.log("Printing window socket");
+// console.log(window.socket);
 let canvas=document.getElementById('canvas');
 let ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled=false;
@@ -39,6 +39,7 @@ const bookSFX = new Audio('audio/book.mp3');
 const keyboardSFX = new Audio('audio/keyboard.mp3');
 const printerSFX = new Audio('audio/printer.mp3');
 const writingSFX = new Audio('audio/writing.mp3');
+const HandinTaskSFX = new Audio('audio/cash-effect.mp3');
 audio.volume = 0.1; // Adjust the volume value as desired (between 0.0 and 1.0)
 
 audio.addEventListener('canplaythrough', () => {
@@ -74,8 +75,8 @@ let browserID;
 
 // Scoring: Things to pass back to the server when game ends
 const playerName = sessionStorage.getItem('playerName');
-console.log('playerName is =========================='); 
-console.log(playerName); 
+// console.log('playerName is =========================='); 
+// console.log(playerName); 
 socket.emit('playerName',playerName)
 
 let score = 0;
@@ -83,7 +84,7 @@ let score = 0;
 function showScore(players){
     let y=25
     let x=1000
-    // console.log(players)
+    ctx.font = "bold 20px Arial";
     for(const id in players){
         ctx.fillText(`player ${players[id].getName()} has score: ${players[id].getScore()}`,x,y)
         y+=100
@@ -101,13 +102,13 @@ function submitScore(name, score) {
     // console.log('finished submitting score');
 
     socket.emit('submit-score', data);
-    console.log('finished submitting score');
+    // console.log('finished submitting score');
 }
 
 // Gameover page is here for testing right now
 function fetchGameOverPage(){
     // Pause the audios
-    console.log("pausing audio");
+    // console.log("pausing audio");
     audio.pause();
     audio.src = '';
 
@@ -220,14 +221,14 @@ socket.on('updatePlayers',(backend_players)=>{
 })
 socket.on('updateDoneList',info=>{
    
-    console.log(info.list)
-    console.log(players)
-    console.log('=======================')
+    // console.log(info.list)
+    // console.log(players)
+    // console.log('=======================')
      players[info.id].setdoneList(info.list)
      
-     console.log(players[info.id].doneList)
-     console.log('=======================')
-     console.log(players)
+    //  console.log(players[info.id].doneList)
+    //  console.log('=======================')
+    //  console.log(players)
  })
 let itemImageMap={
     // Task name : taks sprite
@@ -262,6 +263,12 @@ socket.on('drawItem',backendItemArray=>{
 })
 
 
+socket.on('pauseAudio',id=>{
+    barriers[id].getAudio().pause();
+});
+socket.on('playEffect',()=>{
+    HandinTaskSFX.play()
+})
 socket.on('change_state_to',show=>{
     item1.forEach(i=>i.show=show)
     // showItem1=show;
@@ -315,41 +322,94 @@ function drawAnimation(now){
     const secondRowY=550
     const firstRowY=350
     const firstRowstartingX=350
-    ctx.drawImage(JobArea,
-                20+420*0,200,400,450,
-                140,secondRowY,tableWidth,tableWidth
-            )//Drawing the jobTable
-    ctx.drawImage(JobArea,
-                20+420*1,200,400,450,
-                500,secondRowY,tableWidth,tableWidth
-            )//Drawing the jobTable
-    ctx.drawImage(JobArea,
-                20+420*2,200,400,450,
-                860,secondRowY,tableWidth,tableWidth
-            )//Drawing the jobTable
-    ctx.drawImage(JobArea,
-                20+420*3,200,400,450,
-                1220,secondRowY,tableWidth,tableWidth
-            )//Drawing the jobTable
 
 
-    //first row
-    ctx.drawImage(JobArea,
-                20,200,400,450,
-                firstRowstartingX,firstRowY,tableWidth,tableWidth
+    for(let i=0;i<4;++i){
+        if(barriers[i].getShow()){
+            ctx.drawImage(JobArea,
+                20+420*i,200,400,450,
+                140+360*i,secondRowY,tableWidth,tableWidth
             )//Drawing the jobTable
-    ctx.drawImage(JobArea,
-                20+420,200,400,450,
-                firstRowstartingX+360,firstRowY,tableWidth,tableWidth
+    
+        }
+        else{
+            ctx.drawImage(JobArea,
+                20+420*4,200,400,450,
+                140+360*i,secondRowY,tableWidth,tableWidth
             )//Drawing the jobTable
-    ctx.drawImage(JobArea,
-                20+420*2,200,400,450,
-                firstRowstartingX+2*360,firstRowY,tableWidth,tableWidth
+        }
+
+    }
+
+
+
+    // if(barriers[0].getShow()){
+    //     ctx.drawImage(JobArea,
+    //         20+420*0,200,400,450,
+    //         140,secondRowY,tableWidth,tableWidth
+    //     )//Drawing the jobTable
+
+    // }
+    // else{
+    //     ctx.drawImage(JobArea,
+    //         20+420*4,200,400,450,
+    //         140,secondRowY,tableWidth,tableWidth
+    //     )//Drawing the jobTable
+    // }
+
+
+   
+    // ctx.drawImage(JobArea,
+    //             20+420*1,200,400,450,
+    //             500,secondRowY,tableWidth,tableWidth
+    //         )//Drawing the jobTable
+    // ctx.drawImage(JobArea,
+    //             20+420*2,200,400,450,
+    //             860,secondRowY,tableWidth,tableWidth
+    //         )//Drawing the jobTable
+    // ctx.drawImage(JobArea,
+    //             20+420*3,200,400,450,
+    //             1220,secondRowY,tableWidth,tableWidth
+    //         )//Drawing the jobTable
+
+
+
+
+    for(let i=0;i<4;++i){
+        if(barriers[i+4].getShow()){
+            ctx.drawImage(JobArea,
+                20+420*i,200,400,450,
+                firstRowstartingX+360*i,firstRowY,tableWidth,tableWidth
             )//Drawing the jobTable
-    ctx.drawImage(JobArea,
-                20+420*3,200,400,450,
-                firstRowstartingX+3*360,firstRowY,tableWidth,tableWidth
+    
+        }
+        else{
+            ctx.drawImage(JobArea,
+                20+420*4,200,400,450,
+                firstRowstartingX+360*i,firstRowY,tableWidth,tableWidth
             )//Drawing the jobTable
+        }
+
+    }
+
+
+    // //first row
+    // ctx.drawImage(JobArea,
+    //             20,200,400,450,
+    //             firstRowstartingX,firstRowY,tableWidth,tableWidth
+    //         )//Drawing the jobTable
+    // ctx.drawImage(JobArea,
+    //             20+420,200,400,450,
+    //             firstRowstartingX+360,firstRowY,tableWidth,tableWidth
+    //         )//Drawing the jobTable
+    // ctx.drawImage(JobArea,
+    //             20+420*2,200,400,450,
+    //             firstRowstartingX+2*360,firstRowY,tableWidth,tableWidth
+    //         )//Drawing the jobTable
+    // ctx.drawImage(JobArea,
+    //             20+420*3,200,400,450,
+    //             firstRowstartingX+3*360,firstRowY,tableWidth,tableWidth
+    //         )//Drawing the jobTable
 
     ctx.drawImage(JobArea,
                 450, 20, 150, 140, 
@@ -357,7 +417,14 @@ function drawAnimation(now){
 
     if(barriers){
         barriers.filter(b=>b.type !='wall')
-                .forEach(barrier=>barrier.startProgress(ctx,socket))
+                .forEach(barrier=>{
+                    barrier.startProgress(ctx,socket)
+                    if(barrier.getShow()){
+                        // console.log()
+                       
+                            item1[barrier.getIndex()].item.draw()
+                    }
+                })
         // ctx.fillStyle = "#4caf50";
         ctx.strokeStyle = "rgba(0,0,0,0)"; // Set the stroke color with transparency
         ctx.lineWidth = 2; // Set the line width of the rectangle outline
@@ -376,15 +443,20 @@ function drawAnimation(now){
         wall.forEach(w=>{
             ctx.strokeRect(w.x,w.y,w.width,w.height)
         })
+
+        
     }// visualize the barriers
 
     if(item1){
         item1.forEach(i=>{{
             i.item.update(now)
-            if(i.show)i.item.draw();
+            // if(i.show)i.item.draw();
         }})
-        // item1.update(now);
     }
+
+
+
+
     // if(showItem1){
     //     if(item1){
     //         item1.draw();
@@ -395,12 +467,13 @@ function drawAnimation(now){
         // console.log(id)
         players[id].update(now);
         players[id].draw();
-        ctx.fillStyle = 'red';
-        ctx.fillRect(players[id].getCenterX(),players[id].getCenterY(), 2, 2); 
+
+        // ctx.fillStyle = 'red';
+        // ctx.fillRect(players[id].getCenterX(),players[id].getCenterY(), 2, 2); 
         //visualize center of player
 
-        ctx.fillStyle = 'yellow'; // Set the color of the point
-        ctx.fillRect(players[id].getX(),players[id].getY(), 2, 2); 
+        // ctx.fillStyle = 'yellow'; // Set the color of the point
+        // ctx.fillRect(players[id].getX(),players[id].getY(), 2, 2); 
         //real canvas loaction of player
 
         ctx.fillStyle = 'black';
@@ -515,7 +588,7 @@ document.addEventListener('keydown',event=>{
     if(keycode===65){
         // console.log('gggggg')
         let WorkingState=players[browserID].getWorkingState();
-        console.log(WorkingState.isWorking)
+        // console.log(WorkingState.isWorking)
         if(WorkingState.isWorking){
             socket.emit('cheatMode',WorkingState.table);
 
@@ -531,7 +604,7 @@ socket.on('cheatMode',index=>{
     barriers[index].setSpeed(2)
 })
 socket.on('HideTask',index=>{
-    console.log('calling HideTask hide index',index)
+    // console.log('calling HideTask hide index',index)
     barriers[index].setShow(false)
     item1[index].show=false;
 
@@ -594,7 +667,7 @@ canvas.addEventListener('click', function(event) {
         var x = event.clientX - rect.left 
         var y = event.clientY - rect.top 
 
-        console.log('Clicked at: x=' + x + ', y=' + y);
+        // console.log('Clicked at: x=' + x + ', y=' + y);
 
         // xxx=x,yyy=y
 
@@ -957,18 +1030,20 @@ function drawingSubtask(type,x,y){
 
 
   
-function drawDoneList(playerid,x,y,doneList ){
-            
-    const Xgap=25
-    const Ygap=50
-    const ydiff=13
-    ctx.fillText(`Player ${playerid}`, x, y );
-    y+=20
-    for(const id in doneList){
-        drawingSubtask(id,x,y)
-        ctx.fillText(doneList[id], x+Xgap, y +ydiff); 
-        x += Ygap;
-    }
+  function drawDoneList(playerid, x, y, doneList) {
+    const Xgap = 25;
+    const Ygap = 50;
+    const ydiff = 13;
+    ctx.font = "bold 16px Arial"; // Update font style and size
+    ctx.fillText(`Player ${playerid} is holding`, x, y);
+    y += 20;
+    for (const id in doneList) {
+      drawingSubtask(id, x, y);
+      ctx.font = "14px Arial"; // Update font style and size
+      ctx.fillText(doneList[id], x + Xgap, y + ydiff);
+      x += Ygap;
+   }
 }
+
 
 
