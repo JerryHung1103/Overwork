@@ -92,7 +92,7 @@ const Player=function(socket,id,ctx,src,width,height,x,y,rate,speedTiming,stage,
        
            
         doneList[type]++
-        console.log('doneList is',doneList)
+        // console.log('doneList is',doneList)
         let copy = doneList
         socket.emit('uppdateDoneList',{id:id,  list:copy});
     
@@ -171,10 +171,10 @@ let IsStopping=true;
         else{
             if(flg.type==='submission'){
                 submit(id);
-                console.log('submit now')
+                // console.log('submit now')
 
             }
-            console.log('player', socket.id, 'is stopping')
+            // console.log('player', socket.id, 'is stopping')
             socket.emit('stop');
            
             clearInterval(movingIntival)
@@ -291,6 +291,7 @@ let IsStopping=true;
    
     };
 }
+
 
 
 
