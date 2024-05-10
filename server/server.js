@@ -163,7 +163,7 @@ app.post("/join-room", (req, res) => {
     playersInLobby[playerId] = { isIdle: false };
     // Broadcast latest list of available rooms to the players
     broadcastAvailableRooms();
-
+    restartAnyThing();
     console.log("Send start game message to: ", playerId);
     io.emit('startGame', playerId);
     // Send the room id to the client
