@@ -88,6 +88,11 @@
     fetchGamePage();
   });
 
+  socket.on('quit-game', () => {
+    console.log("quit the game");
+    fetchLoginPage();
+  });
+
   function fetchGamePage(){
     fetch('/play')
       .then(response => {
@@ -95,6 +100,18 @@
           window.location.href = '/play';
         } else {
           throw new Error('Failed to load play.html');
+        }
+      })
+  }
+
+
+  function fetchLoginPage(){
+    fetch('/')
+      .then(response => {
+        if (response.ok) {
+          window.location.href = '/';
+        } else {
+          throw new Error('Failed to load index.html');
         }
       })
   }
@@ -134,3 +151,4 @@
 
 </body>
 </html>
+
