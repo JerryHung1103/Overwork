@@ -560,7 +560,7 @@ io.on('connection',(socket)=>{
                     const { socketId } = socket;
             
                     // 3.2. Calculate the total score
-                    totalScore += score;
+                    totalScore += player.score;
             
                     // 3.3. Rank the players
                     if (player.score > player1Score) {
@@ -577,8 +577,13 @@ io.on('connection',(socket)=>{
                 });    
             
                 // 4. Determine if they players have won or lost
-                // Assume always win for now for testing
-                const gameState = 'win';
+                // Win if total score >= 400 and each player has score 200 or more
+                let gameState;
+                if (totalScore >= 400 && player1Score >= 200 && player2Score >= 200) {
+                    gameState = 'win';
+                } else{
+                    gameState = 'lose';
+                }
             
                 // 5. Store the gameover status
                 gameoverStatus = {player1Name, player1Score, player2Name, player2Score, totalScore, gameState};
