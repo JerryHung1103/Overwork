@@ -16,12 +16,12 @@ const fs = require('fs');
 const path = require('path');
 const { clearInterval } = require('timers');
 
-const players = {};
+let players = {};
 let playerScoreArray=[];
 
 // For index.html
-const rooms = {};
-const playersInLobby = {};
+let rooms = {};
+let playersInLobby = {};
 let gameoverStatus;
 
 
@@ -308,6 +308,12 @@ function restartAnyThing(){
         let task =  generateRandomSubtasks();
         tasks.push( {  subtasks: task.subtasks , duration :200, score:task.score})
     }
+     players = {};
+ playerScoreArray=[];
+
+// For index.html
+ rooms = {};
+ playersInLobby = {};
 }
 
 io.on('connection',(socket)=>{
@@ -560,7 +566,7 @@ io.on('connection',(socket)=>{
                     const { socketId } = socket;
             
                     // 3.2. Calculate the total score
-                    totalScore += player.score;
+                    totalScore += score;
             
                     // 3.3. Rank the players
                     if (player.score > player1Score) {
@@ -577,13 +583,8 @@ io.on('connection',(socket)=>{
                 });    
             
                 // 4. Determine if they players have won or lost
-                // Win if total score >= 400 and each player has score 200 or more
-                let gameState;
-                if (totalScore >= 400 && player1Score >= 200 && player2Score >= 200) {
-                    gameState = 'win';
-                } else{
-                    gameState = 'lose';
-                }
+                // Assume always win for now for testing
+                const gameState = 'win';
             
                 // 5. Store the gameover status
                 gameoverStatus = {player1Name, player1Score, player2Name, player2Score, totalScore, gameState};
@@ -611,11 +612,22 @@ io.on('connection',(socket)=>{
             restartAnyThing()
             io.emit('restart-game');
         })
+
+
+        socket.on('quit-request',()=>{
+            console.log('quit!')
+            restartAnyThing()
+            io.emit('quit-game');
+        })
     }
 
 })
 
 httpServer.listen(8000);
+
+
+
+
 
 
 
